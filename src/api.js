@@ -1,6 +1,7 @@
-const socket = new WebSocket("ws://localhost:8000/ws");
+const socket = new WebSocket("http://18.116.10.48:8000/api/detect");
 
 export const enviarAudio = (audioBlob) => {
+    
     audioBlob.arrayBuffer().then((buffer) => {
         socket.send(buffer);
     });

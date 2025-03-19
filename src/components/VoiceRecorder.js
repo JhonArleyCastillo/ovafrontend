@@ -1,12 +1,14 @@
 import React, { useEffect, useState, useRef } from 'react';
 
+
+
 const AudioChat = () => {
     const [texto, setTexto] = useState('');
     const audioRef = useRef(null);
     const socketRef = useRef(null);
 
     useEffect(() => {
-        const socket = new WebSocket('ws://localhost:8000/ws'); // Ajusta la URL a la de tu backend
+        const socket = new WebSocket("http://18.116.10.48:8000/api/detect");
         socketRef.current = socket;
 
         socket.onopen = () => {
