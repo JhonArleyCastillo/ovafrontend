@@ -8,7 +8,7 @@ const AudioChat = () => {
     const socketRef = useRef(null);
 
     useEffect(() => {
-        const socket = new WebSocket("wss://18.116.10.48:8000/api/detect");
+        const socket = new WebSocket("wss://api.ovaonline.tech/api/detect");
         socketRef.current = socket;
 
         socket.onopen = () => {

@@ -1,4 +1,4 @@
-const socket = new WebSocket("wss://18.116.10.48:8000/api/detect");
+const socket = new WebSocket("wss://api.ovaonline.tech/api/detect");
 
 export const enviarAudio = (audioBlob) => {
 
