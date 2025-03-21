@@ -1,49 +1,52 @@
 import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import VoiceRecorder from "./components/VoiceRecorder";
 import ImageUploader from "./components/ImageUploader";
 import ImageResult from "./components/ImageResult";
+import "./App.css";
 
 function App() {
     const [imageResult, setImageResult] = useState(null);
 
     return (
-        <div style={styles.appContainer}>
-            <h1 style={styles.header}>🎙️ Asistente Inteligente Multimodal</h1>
-
-            <div style={styles.section}>
-                <h2>🗣️ Interacción por Voz</h2>
-                <VoiceRecorder />
-                <Chat />
+        <Router>
+            <div className="app-container">
+                <Sidebar />
+                <main className="main-content">
+                    <Routes>
+                        <Route path="/" element={
+                            <div>
+                                <h1>🎙️ Asistente Inteligente Multimodal</h1>
+                                <div className="section">
+                                    <h2>🗣️ Interacción por Voz</h2>
+                                    <VoiceRecorder />
+                                    <Chat />
+                                </div>
+                                <div className="section">
+                                    <h2>📷 Análisis de Imágenes</h2>
+                                    <ImageUploader onResult={setImageResult} />
+                                    <ImageResult result={imageResult} />
+                                </div>
+                            </div>
+                        } />
+                        <Route path="/playground" element={
+                            <div className="playground">
+                                <h1>🎮 Playground</h1>
+                                <div className="playground-container">
+                                    <VoiceRecorder />
+                                    <Chat />
+                                    <ImageUploader onResult={setImageResult} />
+                                    <ImageResult result={imageResult} />
+                                </div>
+                            </div>
+                        } />
+                    </Routes>
+                </main>
             </div>
-
-            <div style={styles.section}>
-                <h2>📷 Análisis de Imágenes</h2>
-                <ImageUploader onResult={setImageResult} />
-                <ImageResult result={imageResult} />
-            </div>
-        </div>
+        </Router>
     );
 }
-
-const styles = {
-    appContainer: {
-        fontFamily: "Arial, sans-serif",
-        padding: "20px",
-        backgroundColor: "#f9f9f9",
-        minHeight: "100vh"
-    },
-    header: {
-        textAlign: "center",
-        color: "#333"
-    },
-    section: {
-        backgroundColor: "white",
-        padding: "15px",
-        borderRadius: "8px",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-        marginBottom: "20px"
-    }
-};
 
 export default App;
