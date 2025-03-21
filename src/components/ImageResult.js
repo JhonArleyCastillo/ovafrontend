@@ -1,25 +1,33 @@
-import React from "react";
+import React from 'react';
+import PropTypes from 'prop-types';
 
-function ImageResult({ result }) {
-    if (!result) return null;
+const ImageResult = ({ result }) => {
+  if (!result) return null;
 
-    return (
-        <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
-            <h3>📊 Resultados de Análisis</h3>
-            <p><strong>Descripción:</strong> {result.descripcion}</p>
+  return (
+    <div className="image-result">
+      <h3>Descripción de la imagen:</h3>
+      <p>{result.descripcion}</p>
+      
+      {result.objetos_detectados && result.objetos_detectados.length > 0 && (
+        <>
+          <h3>Objetos detectados:</h3>
+          <ul>
+            {result.objetos_detectados.map((objeto, index) => (
+              <li key={index}>{objeto}</li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
+  );
+};
 
-            <h4>Objetos Detectados:</h4>
-            <ul>
-                {result.objetos_detectados.length === 0 ? (
-                    <li>No se detectaron objetos.</li>
-                ) : (
-                    result.objetos_detectados.map((obj, index) => (
-                        <li key={index}>{obj.name} (Confianza: {Math.round(obj.confidence * 100)}%)</li>
-                    ))
-                )}
-            </ul>
-        </div>
-    );
-}
+ImageResult.propTypes = {
+  result: PropTypes.shape({
+    descripcion: PropTypes.string,
+    objetos_detectados: PropTypes.arrayOf(PropTypes.string),
+  }),
+};
 
 export default ImageResult;

@@ -1,39 +1,64 @@
-import React, { useState } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 
-function ImageUploader({ onResult }) {
-    const [file, setFile] = useState(null);
+const ImageUploader = ({ onResult }) => {
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-    };
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const uploadImage = async () => {
-        if (!file) {
-            alert("Por favor selecciona una imagen");
-            return;
-        }
+  const handleUpload = async () => {
+    if (!selectedImage) return;
 
-        const formData = new FormData();
-        formData.append("file", file);
+    const formData = new FormData();
+    formData.append('image', selectedImage);
 
-        try {
-            const response = await axios.post("http://localhost:8000/procesar-imagen", formData, {
-                headers: { "Content-Type": "multipart/form-data" }
-            });
-            onResult(response.data);
-        } catch (error) {
-            console.error("Error al procesar imagen:", error);
-            alert("Hubo un error al procesar la imagen.");
-        }
-    };
+    try {
+      const response = await fetch('http://localhost:8000/procesar-imagen', {
+        method: 'POST',
+        body: formData,
+      });
 
-    return (
+      if (!response.ok) {
+        throw new Error('Error al procesar la imagen');
+      }
+
+      const data = await response.json();
+      onResult(data);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  return (
+    <div className="image-uploader">
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+      />
+      {previewUrl && (
         <div>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-            <button onClick={uploadImage}>📷 Analizar Imagen</button>
+          <img src={previewUrl} alt="Preview" style={{ maxWidth: '300px' }} />
+          <button onClick={handleUpload}>Analizar Imagen</button>
         </div>
-    );
-}
+      )}
+    </div>
+  );
+};
+
+ImageUploader.propTypes = {
+  onResult: PropTypes.func.isRequired
+};
 
 export default ImageUploader;

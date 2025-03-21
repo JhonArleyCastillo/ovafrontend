@@ -41,6 +41,8 @@
     display: flex;
     min-height: 100vh;
     font-family: "Arial, sans-serif";
+    position: relative;
+    width: 100%;
 }
 
 .main-content {
@@ -48,6 +50,7 @@
     margin-left: 300px;
     padding: 20px;
     background-color: #f9f9f9;
+    min-height: 100vh;
 }
 
 .section {
@@ -92,6 +95,7 @@
 @media (max-width: 768px) {
     .main-content {
         margin-left: 0;
+        width: 100%;
     }
     
     .playground-container {

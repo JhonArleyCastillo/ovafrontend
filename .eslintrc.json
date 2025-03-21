@@ -8,7 +8,9 @@
     "eslint:recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "plugin:jsx-a11y/recommended"
+    "plugin:jsx-a11y/recommended",
+    "react-app",
+    "react-app/jest"
   ],
   "parserOptions": {
     "ecmaFeatures": {
@@ -40,7 +42,7 @@
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "indent": ["error", 2],
-    "comma-dangle": ["error", "always-multiline"],
+    "comma-dangle": "off",
     "object-curly-spacing": ["error", "always"],
     "array-bracket-spacing": ["error", "never"]
   },

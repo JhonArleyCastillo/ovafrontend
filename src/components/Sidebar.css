@@ -8,6 +8,7 @@
     left: 0;
     top: 0;
     overflow-y: auto;
+    z-index: 1000;
 }
 
 .sidebar-header {
@@ -123,6 +124,8 @@
         height: auto;
         position: relative;
         padding: 15px;
+        border-right: none;
+        border-bottom: 1px solid #e9ecef;
     }
     
     .nav-section {
