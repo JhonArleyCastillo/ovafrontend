@@ -7,15 +7,25 @@ import ImageUploader from './components/ImageUploader';
 import ImageResult from './components/ImageResult';
 import './App.css';
 
+// Componentes de la landing page
+const Home = () => <div>Página de Inicio</div>;
+const About = () => <div>Sobre Nosotros</div>;
+const Services = () => <div>Servicios</div>;
+const Contact = () => <div>Contacto</div>;
+
 function App() {
   const [imageResult, setImageResult] = useState(null);
 
   return (
     <Router>
-      <div className="app-container">
+      <div className="app">
         <Sidebar />
         <main className="main-content">
           <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/" element={
               <div>
                 <h1>🎙️ Asistente Inteligente Multimodal</h1>
