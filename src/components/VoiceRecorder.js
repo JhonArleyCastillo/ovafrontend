@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import API_ROUTES from '../config/api';
+import PropTypes from 'prop-types';
+import { enviarAudio, escucharRespuestas } from '../api';
 import './VoiceRecorder.css';
 
 const VoiceRecorder = () => {
@@ -7,47 +8,29 @@ const VoiceRecorder = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const mediaRecorderRef = useRef(null);
-  const websocketRef = useRef(null);
   const audioChunksRef = useRef([]);
+  const cleanupRef = useRef(null);
 
   useEffect(() => {
-    // Inicializar WebSocket
-    websocketRef.current = new WebSocket(API_ROUTES.WEBSOCKET_URL);
-
-    websocketRef.current.onopen = () => {
-      console.log('WebSocket conectado');
-      setIsConnected(true);
-    };
-
-    websocketRef.current.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      if (response.audio) {
+    // Configurar el listener de respuestas
+    cleanupRef.current = escucharRespuestas(({ texto, audioBase64 }) => {
+      if (audioBase64) {
         // Convertir el audio base64 a URL
         const audioBlob = new Blob(
-          [Uint8Array.from(atob(response.audio), c => c.charCodeAt(0))],
+          [Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0))],
           { type: 'audio/wav' }
         );
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
       }
-      if (response.texto) {
-        console.log('Respuesta del asistente:', response.texto);
+      if (texto) {
+        console.log('Respuesta del asistente:', texto);
       }
-    };
-
-    websocketRef.current.onerror = (error) => {
-      console.error('Error en WebSocket:', error);
-      setIsConnected(false);
-    };
-
-    websocketRef.current.onclose = () => {
-      console.log('WebSocket desconectado');
-      setIsConnected(false);
-    };
+    });
 
     return () => {
-      if (websocketRef.current) {
-        websocketRef.current.close();
+      if (cleanupRef.current) {
+        cleanupRef.current();
       }
     };
   }, []);
@@ -69,9 +52,7 @@ const VoiceRecorder = () => {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-          websocketRef.current.send(audioBlob);
-        }
+        enviarAudio(audioBlob);
       };
 
       mediaRecorder.start(1000); // Enviar datos cada segundo
@@ -89,6 +70,10 @@ const VoiceRecorder = () => {
     }
   };
 
+  const getConnectionStatusClass = () => {
+    return isConnected ? 'connected' : 'disconnected';
+  };
+
   return (
     <div className="voice-recorder">
       <h2>🎙️ Grabador de Voz</h2>
@@ -101,18 +86,26 @@ const VoiceRecorder = () => {
           {isRecording ? '⏹️ Detener' : '🎤 Grabar'}
         </button>
       </div>
+      <div className="recording-status">
+        {isRecording ? 'Grabando...' : 'Listo para grabar'}
+      </div>
       {audioUrl && (
-        <div className="audio-player">
-          <audio controls src={audioUrl} />
+        <div className="audio-preview">
+          <audio controls src={audioUrl} className="audio-player">
+            <track kind="captions" src="" label="Subtítulos" />
+            <p>Tu navegador no soporta el elemento de audio.</p>
+          </audio>
         </div>
       )}
-      {!isConnected && (
-        <div className="connection-status">
-          Desconectado. Intentando reconectar...
-        </div>
-      )}
+      <div className={`connection-status ${getConnectionStatusClass()}`}>
+        {isConnected ? 'Conectado' : 'Desconectado'}
+      </div>
     </div>
   );
+};
+
+VoiceRecorder.propTypes = {
+  // No props required
 };
 
 export default VoiceRecorder;

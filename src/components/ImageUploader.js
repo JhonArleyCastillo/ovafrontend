@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import API_ROUTES from '../config/api';
+import API_ROUTES from '../api';
 import './ImageUploader.css';
 
 const ImageUploader = ({ onResult }) => {

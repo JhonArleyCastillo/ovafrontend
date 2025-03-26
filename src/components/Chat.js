@@ -1,44 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import API_ROUTES from '../config/api';
+import { enviarAudio, escucharRespuestas } from '../api';
 import './Chat.css';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isConnected, setIsConnected] = useState(false);
-  const websocketRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const cleanupRef = useRef(null);
 
   useEffect(() => {
-    // Inicializar WebSocket
-    websocketRef.current = new WebSocket(API_ROUTES.WEBSOCKET_URL);
-
-    websocketRef.current.onopen = () => {
-      console.log('WebSocket conectado');
-      setIsConnected(true);
-    };
-
-    websocketRef.current.onmessage = (event) => {
-      const response = JSON.parse(event.data);
-      if (response.texto) {
-        setMessages(prev => [...prev, { text: response.texto, isUser: false }]);
-      }
-    };
-
-    websocketRef.current.onerror = (error) => {
-      console.error('Error en WebSocket:', error);
-      setIsConnected(false);
-    };
-
-    websocketRef.current.onclose = () => {
-      console.log('WebSocket desconectado');
-      setIsConnected(false);
-    };
+    // Configurar el listener de respuestas
+    cleanupRef.current = escucharRespuestas(({ texto, audioBase64 }) => {
+      setMessages(prev => [...prev, { 
+        text: texto, 
+        isUser: false,
+        audio: audioBase64 
+      }]);
+    });
 
     return () => {
-      if (websocketRef.current) {
-        websocketRef.current.close();
+      if (cleanupRef.current) {
+        cleanupRef.current();
       }
     };
   }, []);
@@ -49,34 +33,45 @@ const Chat = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!inputMessage.trim() || !isConnected) return;
+    if (!inputMessage.trim()) return;
 
     const message = inputMessage.trim();
     setMessages(prev => [...prev, { text: message, isUser: true }]);
     setInputMessage('');
 
     // Enviar mensaje al backend
-    if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
-      websocketRef.current.send(message);
-    }
+    enviarAudio(message);
   };
 
   return (
     <div className="chat-container">
+      <div className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+        {isConnected ? 'Conectado' : 'Desconectado'}
+      </div>
       <div className="chat-messages">
         {messages.map((message, index) => (
           <div
             key={index}
-            className={`message ${message.isUser ? 'user-message' : 'assistant-message'}`}
+            className={`message ${message.isUser ? 'user' : 'assistant'}`}
           >
             <div className="message-content">
               {message.text}
             </div>
+            {message.audio && (
+              <audio 
+                controls 
+                className="audio-player"
+                src={`data:audio/wav;base64,${message.audio}`}
+              >
+                <track kind="captions" src="" label="Subtítulos" />
+                Tu navegador no soporta el elemento de audio.
+              </audio>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit} className="chat-input-form">
+      <form onSubmit={handleSubmit} className="chat-input-container">
         <input
           type="text"
           value={inputMessage}
@@ -93,13 +88,12 @@ const Chat = () => {
           Enviar
         </button>
       </form>
-      {!isConnected && (
-        <div className="connection-status">
-          Desconectado. Intentando reconectar...
-        </div>
-      )}
     </div>
   );
+};
+
+Chat.propTypes = {
+  // No props required
 };
 
 export default Chat;
