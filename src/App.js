@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 import VoiceRecorder from './components/VoiceRecorder';
@@ -15,21 +15,55 @@ const Home = () => (
       <p>Interactúa con tu asistente a través de voz e imágenes</p>
     </div>
     <div className="features-grid">
-      <div className="feature-card">
+      <Link to="/asistente-voz" className="feature-card">
         <span className="feature-icon">🎙️</span>
         <h3>Interacción por Voz</h3>
         <p>Comunícate naturalmente con tu asistente</p>
-      </div>
-      <div className="feature-card">
+      </Link>
+      <Link to="/asistente-imagen" className="feature-card">
         <span className="feature-icon">📷</span>
         <h3>Análisis de Imágenes</h3>
         <p>Analiza y comprende imágenes en tiempo real</p>
-      </div>
-      <div className="feature-card">
+      </Link>
+      <Link to="/asistente-chat" className="feature-card">
         <span className="feature-icon">💬</span>
         <h3>Chat Inteligente</h3>
         <p>Conversaciones naturales y contextuales</p>
+      </Link>
+    </div>
+  </div>
+);
+
+// Componentes de los asistentes
+const AsistenteVoz = () => (
+  <div className="assistant-container">
+    <h1>Asistente por Voz</h1>
+    <div className="assistant-content">
+      <VoiceRecorder />
+      <Chat />
+    </div>
+  </div>
+);
+
+const AsistenteImagen = () => {
+  const [imageResult, setImageResult] = useState(null);
+  
+  return (
+    <div className="assistant-container">
+      <h1>Asistente por Imágenes</h1>
+      <div className="assistant-content">
+        <ImageUploader onResult={setImageResult} />
+        <ImageResult result={imageResult} />
       </div>
+    </div>
+  );
+};
+
+const AsistenteChat = () => (
+  <div className="assistant-container">
+    <h1>Asistente por Chat</h1>
+    <div className="assistant-content">
+      <Chat />
     </div>
   </div>
 );
@@ -88,8 +122,6 @@ const Contact = () => (
 );
 
 function App() {
-  const [imageResult, setImageResult] = useState(null);
-
   return (
     <Router>
       <div className="app">
@@ -100,17 +132,9 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/playground" element={
-              <div className="playground">
-                <h1>🎮 Playground</h1>
-                <div className="playground-container">
-                  <VoiceRecorder />
-                  <Chat />
-                  <ImageUploader onResult={setImageResult} />
-                  <ImageResult result={imageResult} />
-                </div>
-              </div>
-            } />
+            <Route path="/asistente-voz" element={<AsistenteVoz />} />
+            <Route path="/asistente-imagen" element={<AsistenteImagen />} />
+            <Route path="/asistente-chat" element={<AsistenteChat />} />
           </Routes>
         </main>
       </div>

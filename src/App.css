@@ -62,11 +62,19 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: block;
+  cursor: pointer;
 }
 
 .feature-card:hover {
   transform: translateY(-5px);
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card:active {
+  transform: translateY(-2px);
 }
 
 .feature-icon {
@@ -201,6 +209,27 @@ button[type="submit"]:hover {
 }
 
 .playground-container > div {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilos de los asistentes */
+.assistant-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.assistant-container h1 {
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+}
+
+.assistant-content {
   background: white;
   padding: 2rem;
   border-radius: 16px;

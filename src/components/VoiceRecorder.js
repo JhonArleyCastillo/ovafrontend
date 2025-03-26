@@ -1,110 +1,118 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import API_ROUTES from '../config/api';
+import './VoiceRecorder.css';
 
-const AudioChat = () => {
-  const [texto, setTexto] = useState('');
-  const audioRef = useRef(null);
-  const socketRef = useRef(null);
+const VoiceRecorder = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const mediaRecorderRef = useRef(null);
+  const websocketRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
-    const socket = new WebSocket('wss://api.ovaonline.tech/api/detect');
-    socketRef.current = socket;
+    // Inicializar WebSocket
+    websocketRef.current = new WebSocket(API_ROUTES.WEBSOCKET_URL);
 
-    socket.onopen = () => {
-      console.log('Conectado al WebSocket');
+    websocketRef.current.onopen = () => {
+      console.log('WebSocket conectado');
+      setIsConnected(true);
     };
 
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      // Mostrar el texto recibido
-      setTexto(data.texto);
-
-      // Decodificar el audio base64
-      const audioBlob = base64ToBlob(data.audio, 'audio/wav');
-      const audioUrl = URL.createObjectURL(audioBlob);
-
-      // Reproducir el audio
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
+    websocketRef.current.onmessage = (event) => {
+      const response = JSON.parse(event.data);
+      if (response.audio) {
+        // Convertir el audio base64 a URL
+        const audioBlob = new Blob(
+          [Uint8Array.from(atob(response.audio), c => c.charCodeAt(0))],
+          { type: 'audio/wav' }
+        );
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+      }
+      if (response.texto) {
+        console.log('Respuesta del asistente:', response.texto);
       }
     };
 
-    socket.onerror = (error) => {
+    websocketRef.current.onerror = (error) => {
       console.error('Error en WebSocket:', error);
+      setIsConnected(false);
     };
 
-    socket.onclose = () => {
-      console.log('WebSocket cerrado');
+    websocketRef.current.onclose = () => {
+      console.log('WebSocket desconectado');
+      setIsConnected(false);
     };
 
     return () => {
-      socket.close();
+      if (websocketRef.current) {
+        websocketRef.current.close();
+      }
     };
   }, []);
 
-  const enviarAudio = async (archivo) => {
-    const audioBlob = new Blob([archivo], { type: 'audio/wav' });
-    const arrayBuffer = await audioBlob.arrayBuffer();
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: 'audio/webm',
+        audioBitsPerSecond: 16000
+      });
+      
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-    // Enviar el audio como bytes al backend
-    socketRef.current.send(arrayBuffer);
-  };
-
-  const grabarYEnviar = () => {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-      const mediaRecorder = new MediaRecorder(stream);
-      const chunks = [];
-
-      mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-        enviarAudio(audioBlob);
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
       };
 
-      mediaRecorder.start();
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        if (websocketRef.current && websocketRef.current.readyState === WebSocket.OPEN) {
+          websocketRef.current.send(audioBlob);
+        }
+      };
 
-      setTimeout(() => {
-        mediaRecorder.stop();
-      }, 5000); // Graba 5 segundos (ajusta según necesites)
-    }).catch((err) => {
-      console.error('Error al acceder al micrófono:', err);
-    });
+      mediaRecorder.start(1000); // Enviar datos cada segundo
+      setIsRecording(true);
+    } catch (error) {
+      console.error('Error al acceder al micrófono:', error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      setIsRecording(false);
+    }
   };
 
   return (
-    <div>
-      <h2>Asistente Inteligente Multimodal</h2>
-      <p>{texto}</p>
-      <button onClick={grabarYEnviar}>🎤 Grabar y Enviar</button>
-      <audio 
-        ref={audioRef} 
-        controls 
-        style={{ display: 'none' }}
-      >
-        <track kind="captions" src="" label="Transcripción de audio" />
-      </audio>
+    <div className="voice-recorder">
+      <h2>🎙️ Grabador de Voz</h2>
+      <div className="controls">
+        <button
+          onClick={isRecording ? stopRecording : startRecording}
+          className={`record-button ${isRecording ? 'recording' : ''}`}
+          disabled={!isConnected}
+        >
+          {isRecording ? '⏹️ Detener' : '🎤 Grabar'}
+        </button>
+      </div>
+      {audioUrl && (
+        <div className="audio-player">
+          <audio controls src={audioUrl} />
+        </div>
+      )}
+      {!isConnected && (
+        <div className="connection-status">
+          Desconectado. Intentando reconectar...
+        </div>
+      )}
     </div>
   );
 };
 
-// Función para convertir base64 a Blob
-function base64ToBlob(base64, mimeType) {
-  const byteCharacters = atob(base64);
-  const byteArrays = [];
-  for (let offset = 0; offset < byteCharacters.length; offset += 512) {
-    const slice = byteCharacters.slice(offset, offset + 512);
-    const byteNumbers = new Array(slice.length);
-
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
-
-  return new Blob(byteArrays, { type: mimeType });
-}
-
-export default AudioChat;
+export default VoiceRecorder;
