@@ -8,10 +8,84 @@ import ImageResult from './components/ImageResult';
 import './App.css';
 
 // Componentes de la landing page
-const Home = () => <div>Página de Inicio</div>;
-const About = () => <div>Sobre Nosotros</div>;
-const Services = () => <div>Servicios</div>;
-const Contact = () => <div>Contacto</div>;
+const Home = () => (
+  <div className="page-container">
+    <div className="hero-section">
+      <h1>Asistente Inteligente Multimodal</h1>
+      <p>Interactúa con tu asistente a través de voz e imágenes</p>
+    </div>
+    <div className="features-grid">
+      <div className="feature-card">
+        <span className="feature-icon">🎙️</span>
+        <h3>Interacción por Voz</h3>
+        <p>Comunícate naturalmente con tu asistente</p>
+      </div>
+      <div className="feature-card">
+        <span className="feature-icon">📷</span>
+        <h3>Análisis de Imágenes</h3>
+        <p>Analiza y comprende imágenes en tiempo real</p>
+      </div>
+      <div className="feature-card">
+        <span className="feature-icon">💬</span>
+        <h3>Chat Inteligente</h3>
+        <p>Conversaciones naturales y contextuales</p>
+      </div>
+    </div>
+  </div>
+);
+
+const About = () => (
+  <div className="page-container">
+    <h1>Sobre Nosotros</h1>
+    <div className="about-content">
+      <p>Somos un equipo apasionado por la inteligencia artificial y la innovación tecnológica.</p>
+      <p>Nuestra misión es hacer la tecnología más accesible y útil para todos.</p>
+    </div>
+  </div>
+);
+
+const Services = () => (
+  <div className="page-container">
+    <h1>Nuestros Servicios</h1>
+    <div className="services-grid">
+      <div className="service-card">
+        <h3>Asistente Virtual</h3>
+        <p>Interacción natural a través de voz y texto</p>
+      </div>
+      <div className="service-card">
+        <h3>Análisis de Imágenes</h3>
+        <p>Reconocimiento y análisis de imágenes en tiempo real</p>
+      </div>
+      <div className="service-card">
+        <h3>Chat Inteligente</h3>
+        <p>Conversaciones contextuales y personalizadas</p>
+      </div>
+    </div>
+  </div>
+);
+
+const Contact = () => (
+  <div className="page-container">
+    <h1>Contacto</h1>
+    <div className="contact-form">
+      <form>
+        <div className="form-group">
+          <label htmlFor="name">Nombre</label>
+          <input type="text" id="name" name="name" />
+        </div>
+        <div className="form-group">
+          <label htmlFor="email">Email</label>
+          <input type="email" id="email" name="email" />
+        </div>
+        <div className="form-group">
+          <label htmlFor="message">Mensaje</label>
+          <textarea id="message" name="message"></textarea>
+        </div>
+        <button type="submit">Enviar Mensaje</button>
+      </form>
+    </div>
+  </div>
+);
 
 function App() {
   const [imageResult, setImageResult] = useState(null);
@@ -26,21 +100,6 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/" element={
-              <div>
-                <h1>🎙️ Asistente Inteligente Multimodal</h1>
-                <div className="section">
-                  <h2>🗣️ Interacción por Voz</h2>
-                  <VoiceRecorder />
-                  <Chat />
-                </div>
-                <div className="section">
-                  <h2>📷 Análisis de Imágenes</h2>
-                  <ImageUploader onResult={setImageResult} />
-                  <ImageResult result={imageResult} />
-                </div>
-              </div>
-            } />
             <Route path="/playground" element={
               <div className="playground">
                 <h1>🎮 Playground</h1>

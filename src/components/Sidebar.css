@@ -1,12 +1,26 @@
 .sidebar {
-    width: 250px;
-    background-color: #f8f9fa;
-    padding: 20px;
+    width: 280px;
+    background-color: #ffffff;
+    padding: 2rem 1.5rem;
     height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+    border-right: 1px solid #f0f0f0;
+}
+
+.sidebar-header {
+    margin-bottom: 3rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.sidebar-header h1 {
+    font-size: 1.8rem;
+    color: #1a1a1a;
+    font-weight: 700;
+    margin: 0;
 }
 
 .sidebar nav ul {
@@ -16,32 +30,32 @@
 }
 
 .sidebar nav ul li {
-    margin-bottom: 10px;
+    margin-bottom: 0.5rem;
 }
 
 .sidebar nav ul li a {
-    display: block;
-    padding: 10px 15px;
-    color: #333;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    color: #4a4a4a;
     text-decoration: none;
-    border-radius: 5px;
-    transition: background-color 0.3s;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-weight: 500;
 }
 
 .sidebar nav ul li a:hover {
-    background-color: #e9ecef;
-    color: #007bff;
+    background-color: #f8f9fa;
+    color: #1a1a1a;
 }
 
-.sidebar-header {
-    margin-bottom: 30px;
+.sidebar nav ul li a .icon {
+    margin-right: 1rem;
+    font-size: 1.2rem;
 }
 
-.sidebar-header h1 {
-    font-size: 24px;
-    color: #2c3e50;
-    margin-bottom: 20px;
-    text-align: center;
+.sidebar nav ul li a .text {
+    font-size: 1rem;
 }
 
 .search-container {
@@ -146,9 +160,26 @@
         height: auto;
         position: relative;
         box-shadow: none;
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 1rem;
     }
     
-    .nav-section {
-        margin-bottom: 15px;
+    .sidebar-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .sidebar nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .sidebar nav ul li {
+        margin-bottom: 0;
+    }
+    
+    .sidebar nav ul li a {
+        padding: 0.8rem 1rem;
     }
 } 
