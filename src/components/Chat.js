@@ -13,8 +13,18 @@ const SendIcon = () => (
 
 // Componente de icono de imagen
 const ImageIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM12 12L10.2 14.4L7 10L5 13V17H19V13L16 9L12 12Z" fill="currentColor"/>
+  <svg 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+    style={{ width: '24px', height: '24px' }}
+  >
+    <path 
+      d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19ZM14.14 11.86L11.14 15.73L9 13.14L6 17H18L14.14 11.86Z" 
+      fill="white"
+    />
   </svg>
 );
 
@@ -148,86 +158,91 @@ const Chat = () => {
         setInputMessage('');
     };
 
-    const handleImageUpload = async (event) => {
+    const handleImageUpload = (event) => {
+        console.log("Evento de carga de imagen activado");
         const file = event.target.files[0];
-        if (!file) return;
-        
-        // Verificar la conexión antes de procesar
-        try {
-            // Verificar que podamos alcanzar el servidor
-            const serverAvailable = await checkConnection();
-            if (!serverAvailable) {
-                setConnectionError('No se puede conectar al servidor. Por favor, inténtelo de nuevo.');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const base64Image = e.target.result;
-                setSelectedImage(base64Image);
-                
-                // Mostrar imagen en el chat
-                const newMessage = { 
-                    text: 'Imagen de lenguaje de señas enviada', 
-                    isUser: true,
-                    image: base64Image 
-                };
-                setMessages(prev => [...prev, newMessage]);
-                
-                // Indicar que se está procesando
-                setIsTyping(true);
-                
-                try {
-                    // Enviar la imagen al servidor
-                    const response = await fetch(`${BACKEND_URL}/analyze-sign-language`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ image: base64Image }),
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (!response.ok) {
-                        throw new Error(data.error || 'Error al analizar la imagen');
-                    }
-                    
-                    // Formatear las alternativas si existen
-                    let alternativasTexto = '';
-                    if (data.alternatives && data.alternatives.length > 0) {
-                        alternativasTexto = '\n\nOtras posibilidades:\n' + 
-                            data.alternatives.map(alt => 
-                                `• ${alt.simbolo}: ${alt.probabilidad}%`
-                            ).join('\n');
-                    }
-                    
-                    // Añadir la respuesta al chat
-                    setMessages(prev => [...prev, { 
-                        text: `Lenguaje de señas detectado: ${data.prediction} (confianza: ${data.confidence}%)${alternativasTexto}`, 
-                        isUser: false 
-                    }]);
-                } catch (error) {
-                    console.error('Error:', error);
-                    // Añadir mensaje de error
-                    setMessages(prev => [...prev, { 
-                        text: `No se pudo reconocer el lenguaje de señas: ${error.message}`, 
-                        isUser: false 
-                    }]);
-                    setConnectionError('Error al analizar la imagen');
-                } finally {
-                    setIsTyping(false);
-                }
-            };
-            reader.readAsDataURL(file);
-        } catch (error) {
-            console.error('Error al verificar la conexión:', error);
-            setConnectionError('Error al verificar la conexión con el servidor');
+        if (!file) {
+            console.log("No se seleccionó ningún archivo");
+            return;
         }
+        
+        console.log("Archivo seleccionado:", file.name);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64Image = e.target.result;
+            setSelectedImage(base64Image);
+            
+            // Mostrar imagen en el chat
+            const newMessage = { 
+                text: 'Imagen de lenguaje de señas enviada', 
+                isUser: true,
+                image: base64Image 
+            };
+            setMessages(prev => [...prev, newMessage]);
+            setIsTyping(true);
+            
+            try {
+                // Enviar la imagen al servidor
+                console.log("Enviando imagen al servidor...");
+                const response = await fetch(`${BACKEND_URL}/analyze-sign-language`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ image: base64Image }),
+                });
+                
+                console.log("Respuesta recibida del servidor");
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error al analizar la imagen');
+                }
+                
+                // Formatear las alternativas si existen
+                let alternativasTexto = '';
+                if (data.alternatives && data.alternatives.length > 0) {
+                    alternativasTexto = '\n\nOtras posibilidades:\n' + 
+                        data.alternatives.map(alt => 
+                            `• ${alt.simbolo}: ${alt.probabilidad}%`
+                        ).join('\n');
+                }
+                
+                // Añadir la respuesta al chat
+                setMessages(prev => [...prev, { 
+                    text: `Lenguaje de señas detectado: ${data.prediction} (confianza: ${data.confidence}%)${alternativasTexto}`, 
+                    isUser: false 
+                }]);
+                console.log("Respuesta añadida al chat");
+            } catch (error) {
+                console.error('Error al procesar la imagen:', error);
+                // Añadir mensaje de error al chat
+                setMessages(prev => [...prev, { 
+                    text: `No se pudo reconocer el lenguaje de señas: ${error.message}`, 
+                    isUser: false 
+                }]);
+            } finally {
+                setIsTyping(false);
+            }
+        };
+        
+        reader.onerror = (error) => {
+            console.error("Error al leer el archivo:", error);
+            setConnectionError('Error al leer la imagen');
+        };
+        
+        // Iniciar la lectura del archivo
+        reader.readAsDataURL(file);
     };
 
     const openImageSelector = () => {
-        fileInputRef.current.click();
+        console.log("Abriendo selector de imágenes");
+        // Verificar que el fileInputRef existe
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        } else {
+            console.error("Error: No se pudo encontrar el input de archivo");
+        }
     };
 
     return (
@@ -280,7 +295,7 @@ const Chat = () => {
                     type="button"
                     className="upload-button"
                     onClick={openImageSelector}
-                    disabled={!isConnected}
+                    title="Subir imagen de lenguaje de señas"
                 >
                     <ImageIcon />
                 </button>
@@ -290,6 +305,7 @@ const Chat = () => {
                     onChange={handleImageUpload} 
                     accept="image/*" 
                     style={{ display: 'none' }} 
+                    id="upload-image-input"
                 />
                 <button
                     type="submit"
