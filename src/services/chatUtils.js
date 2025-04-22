@@ -1,4 +1,4 @@
-import { Logger } from '../utils/debug-utils';
+import Logger from '../utils/debug-utils';
 import { COMPONENT_NAMES } from '../config/constants';
 
 const COMPONENT_NAME = COMPONENT_NAMES.CHAT_UTILS;

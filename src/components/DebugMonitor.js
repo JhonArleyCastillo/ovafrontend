@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Logger } from '../utils/debug-utils';
+import Logger from '../utils/debug-utils';
 
 // Estilos inline para el monitor
 const styles = {

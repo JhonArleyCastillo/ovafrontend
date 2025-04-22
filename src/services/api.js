@@ -1,4 +1,4 @@
-import { Logger, safeApiCall, createMonitoredWebSocket } from '../utils/debug-utils';
+import Logger, { safeApiCall, createMonitoredWebSocket } from '../utils/debug-utils';
 import { API_BASE_URL, API_ROUTES, COMPONENT_NAMES } from '../config/constants';
 
 /**

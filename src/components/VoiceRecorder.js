@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Logger } from '../utils/debug-utils';
+import Logger from '../utils/debug-utils';
 import { getAudioStream, createAudioRecorder, playAudio } from '../utils/media-utils';
 import ApiService from '../services/api';
 import { COMPONENT_NAMES } from '../config/constants';

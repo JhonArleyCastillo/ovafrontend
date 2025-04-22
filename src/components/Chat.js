@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './Chat.css';
-import { Logger, useStateMonitor } from '../utils/debug-utils';
+import Logger, { useStateMonitor } from '../utils/debug-utils';
 import ApiService from '../services/api';
 import { formatImageAnalysisResult, addMessage, addErrorMessage, readImageAsBase64 } from '../services/chatUtils';
 import { ErrorMessage } from '../components/common';
-import ChatHeader from './ChatHeader';
-import MessageList from './MessageList';
-import ChatInput from './ChatInput';
+import ChatHeader from './Chat/ChatHeader';
+import MessageList from './Chat/MessageList';
+import ChatInput from './Chat/ChatInput';
 import { COMPONENT_NAMES, WEBSOCKET_CONFIG, API_ROUTES } from '../config/constants';
+import PropTypes from 'prop-types';
 
 const COMPONENT_NAME = COMPONENT_NAMES.CHAT;
 
-const Chat = () => {
+const Chat = ({ onImageResult }) => {
   // Estado
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -182,16 +183,21 @@ const Chat = () => {
       const base64Image = await readImageAsBase64(file);
       
       // Mostrar imagen en el chat
-      addMessage(setMessages, 'Imagen de lenguaje de señas enviada', true, base64Image);
+      addMessage(setMessages, 'Imagen enviada', true, base64Image);
       setIsTyping(true);
       
       // Analizar la imagen
-      const { success, data, error } = await ApiService.analyzeSignLanguageImage(base64Image);
+      const { success, data, error } = await ApiService.processImage(base64Image);
       
       if (success && data) {
         // Formatear y mostrar resultado
         const resultText = formatImageAnalysisResult(data);
         addMessage(setMessages, resultText, false);
+        
+        // Pasar el resultado al componente padre si existe
+        if (onImageResult) {
+          onImageResult(data);
+        }
       } else {
         throw new Error(error?.message || 'Error al analizar la imagen');
       }
@@ -201,7 +207,7 @@ const Chat = () => {
     } finally {
       setIsTyping(false);
     }
-  }, []);
+  }, [onImageResult]);
   
   const clearError = () => setConnectionError('');
 
@@ -227,6 +233,10 @@ const Chat = () => {
       />
     </div>
   );
+};
+
+Chat.propTypes = {
+  onImageResult: PropTypes.func
 };
 
 export default Chat;

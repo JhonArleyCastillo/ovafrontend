@@ -9,18 +9,18 @@ const isDev = process.env.NODE_ENV !== 'production';
 /**
  * Sistema de registro centralizado con diferentes niveles
  */
-export const Logger = {
+export default class Logger {
   /**
    * Registra mensajes de depuración (solo en desarrollo)
    * @param {string} component - Nombre del componente que genera el mensaje
    * @param {string} message - Mensaje de depuración
    * @param {any} data - Datos adicionales opcionales
    */
-  debug: (component, message, data) => {
+  static debug(component, message, data) {
     if (isDev) {
       console.log(`[DEBUG][${component}] ${message}`, data !== undefined ? data : '');
     }
-  },
+  }
 
   /**
    * Registra errores (siempre)
@@ -28,9 +28,9 @@ export const Logger = {
    * @param {string} message - Mensaje de error
    * @param {Error|any} error - Objeto de error o datos adicionales
    */
-  error: (component, message, error) => {
+  static error(component, message, error) {
     console.error(`[ERROR][${component}] ${message}`, error !== undefined ? error : '');
-  },
+  }
 
   /**
    * Registra advertencias (siempre)
@@ -38,9 +38,9 @@ export const Logger = {
    * @param {string} message - Mensaje de advertencia
    * @param {any} data - Datos adicionales opcionales
    */
-  warn: (component, message, data) => {
+  static warn(component, message, data) {
     console.warn(`[WARN][${component}] ${message}`, data !== undefined ? data : '');
-  },
+  }
 
   /**
    * Registra información (siempre)
@@ -48,10 +48,10 @@ export const Logger = {
    * @param {string} message - Mensaje informativo
    * @param {any} data - Datos adicionales opcionales
    */
-  info: (component, message, data) => {
+  static info(component, message, data) {
     console.info(`[INFO][${component}] ${message}`, data !== undefined ? data : '');
   }
-};
+}
 
 /**
  * Crea un WebSocket monitorizado que registra los mensajes
@@ -126,12 +126,4 @@ export const measurePerformance = (fn, component, functionName) => {
   Logger.debug(component, `${functionName} ejecutado en ${end - start}ms`);
   
   return result;
-};
-
-export default {
-  Logger,
-  createMonitoredWebSocket,
-  safeApiCall,
-  useStateMonitor,
-  measurePerformance
 }; 

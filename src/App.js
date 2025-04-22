@@ -3,10 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 import VoiceRecorder from './components/VoiceRecorder';
-import ImageUploader from './components/ImageUploader';
-import ImageResult from './components/ImageResult';
+import SignLanguageUploader from './components/SignLanguageUploader';
 import DebugMonitor from './components/DebugMonitor';
-import { Logger } from './utils';
+import Logger from './utils/debug-utils';
 import './App.css';
 // Importar la utilidad de diagnóstico
 import './utils/connection-test';
@@ -15,65 +14,26 @@ import './utils/connection-test';
 const COMPONENT_NAME = 'App';
 
 // Componentes de la landing page
-const Home = () => (
-  <div className="page-container">
-    <div className="hero-section">
-      <h1>Asistente Inteligente Multimodal</h1>
-      <p>Interactúa con tu asistente a través de voz e imágenes</p>
-    </div>
-    <div className="features-grid">
-      <Link to="/asistente-voz" className="feature-card">
-        <span className="feature-icon">🎙️</span>
-        <h3>Interacción por Voz</h3>
-        <p>Comunícate naturalmente con tu asistente</p>
-      </Link>
-      <Link to="/asistente-imagen" className="feature-card">
-        <span className="feature-icon">📷</span>
-        <h3>Análisis de Imágenes</h3>
-        <p>Analiza y comprende imágenes en tiempo real</p>
-      </Link>
-      <Link to="/asistente-chat" className="feature-card">
-        <span className="feature-icon">💬</span>
-        <h3>Chat Inteligente</h3>
-        <p>Conversaciones naturales y contextuales</p>
-      </Link>
-    </div>
-  </div>
-);
+const Home = () => {
+  // useEffect para hacer scroll al top del contenedor principal
+  useEffect(() => {
+    const mainContent = document.querySelector('.main-content');
+    if (mainContent) {
+      mainContent.scrollTop = 0;
+    }
+  }, []); // El array vacío asegura que se ejecute solo al montar el componente
 
-// Componentes de los asistentes
-const AsistenteVoz = () => (
-  <div className="assistant-container">
-    <h1>Asistente por Voz</h1>
-    <div className="assistant-content">
-      <VoiceRecorder />
-      <Chat />
-    </div>
-  </div>
-);
-
-const AsistenteImagen = () => {
-  const [imageResult, setImageResult] = useState(null);
-  
   return (
-    <div className="assistant-container">
-      <h1>Asistente por Imágenes</h1>
-      <div className="assistant-content">
-        <ImageUploader onResult={setImageResult} />
-        <ImageResult result={imageResult} />
+    <div className="home-container">
+      <h1>Bienvenido al Asistente Virtual</h1>
+      <div className="home-content">
+        <VoiceRecorder />
+        <SignLanguageUploader />
+        <Chat />
       </div>
     </div>
   );
 };
-
-const AsistenteChat = () => (
-  <div className="assistant-container">
-    <h1>Asistente por Chat</h1>
-    <div className="assistant-content">
-      <Chat />
-    </div>
-  </div>
-);
 
 const About = () => (
   <div className="page-container">
@@ -90,16 +50,20 @@ const Services = () => (
     <h1>Nuestros Servicios</h1>
     <div className="services-grid">
       <div className="service-card">
-        <h3>Asistente Virtual</h3>
-        <p>Interacción natural a través de voz y texto</p>
+        <h3>Asistente Virtual por Voz</h3>
+        <p>Interactúa naturalmente con nuestro asistente mediante comandos de voz. Graba mensajes de voz y recibe respuestas tanto en audio como en texto, permitiendo una comunicación fluida y accesible.</p>
       </div>
       <div className="service-card">
-        <h3>Análisis de Imágenes</h3>
-        <p>Reconocimiento y análisis de imágenes en tiempo real</p>
+        <h3>Intérprete de Lenguaje de Señas</h3>
+        <p>Sube imágenes de lenguaje de señas y obtén interpretaciones instantáneas. Nuestro sistema de IA analiza las señas y proporciona traducciones precisas con niveles de confianza.</p>
       </div>
       <div className="service-card">
         <h3>Chat Inteligente</h3>
-        <p>Conversaciones contextuales y personalizadas</p>
+        <p>Comunícate por texto con nuestro asistente virtual. Envía mensajes, imágenes y recibe respuestas contextuales. Ideal para consultas rápidas y soporte continuo.</p>
+      </div>
+      <div className="service-card">
+        <h3>Accesibilidad Universal</h3>
+        <p>Diseñado para ser accesible a todos los usuarios, independientemente de sus capacidades. Interfaz adaptativa que soporta múltiples formas de interacción: voz, texto e imágenes.</p>
       </div>
     </div>
   </div>
@@ -184,9 +148,6 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/asistente-voz" element={<AsistenteVoz />} />
-            <Route path="/asistente-imagen" element={<AsistenteImagen />} />
-            <Route path="/asistente-chat" element={<AsistenteChat />} />
           </Routes>
         </main>
         

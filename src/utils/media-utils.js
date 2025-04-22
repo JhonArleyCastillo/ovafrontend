@@ -2,7 +2,7 @@
  * Utilidades para manejo de medios (audio, imágenes, video)
  */
 
-import { Logger } from './debug-utils';
+import Logger from './debug-utils';
 
 const COMPONENT_NAME = 'MediaUtils';
 
