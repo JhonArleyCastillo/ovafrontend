@@ -11,12 +11,16 @@ const ErrorMessage = ({ message, onDismiss }) => {
   if (!message) return null;
   
   return (
-    <div className="error-message">
-      <span className="error-text">{message}</span>
+    <div className="alert alert-danger alert-dismissible fade show" role="alert">
+      <i className="bi bi-exclamation-triangle me-2"></i>
+      {message}
       {onDismiss && (
-        <button className="dismiss-error" onClick={onDismiss}>
-          ✕
-        </button>
+        <button 
+          type="button" 
+          className="btn-close" 
+          onClick={onDismiss}
+          aria-label="Close"
+        ></button>
       )}
     </div>
   );
@@ -27,4 +31,4 @@ ErrorMessage.propTypes = {
   onDismiss: PropTypes.func
 };
 
-export default ErrorMessage; 
+export default ErrorMessage;

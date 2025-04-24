@@ -71,6 +71,30 @@ export const createMonitoredWebSocket = (url, component) => {
     return originalSend.call(this, data);
   };
   
+  // Interceptar eventos de recepción
+  socket.addEventListener('message', (event) => {
+    Logger.debug(component, 'WS recibido', event.data);
+  });
+  
+  // Interceptar eventos de error
+  socket.addEventListener('error', (error) => {
+    Logger.error(component, 'WS error', error);
+  });
+  
+  // Interceptar eventos de conexión y desconexión
+  socket.addEventListener('open', () => {
+    Logger.info(component, 'WS conectado');
+  });
+  
+  socket.addEventListener('close', (event) => {
+    Logger.info(component, `WS desconectado (código: ${event.code})`, event.reason);
+  });
+  
+  // Guardar en window para monitoreo global (solo en desarrollo)
+  if (isDev && typeof window !== 'undefined') {
+    window._debugWs = socket;
+  }
+  
   return socket;
 };
 
@@ -126,4 +150,4 @@ export const measurePerformance = (fn, component, functionName) => {
   Logger.debug(component, `${functionName} ejecutado en ${end - start}ms`);
   
   return result;
-}; 
+};

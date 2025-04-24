@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 import Logger from '../utils/debug-utils';
 import { getAudioStream, createAudioRecorder, playAudio } from '../utils/media-utils';
 import ApiService from '../services/api';
 import { COMPONENT_NAMES } from '../config/constants';
 import { ConnectionStatus, ErrorMessage } from './common';
-import './VoiceRecorder.css';
+import { processIncomingMessage, handleMessageActions } from '../utils/message-utils';
 
 const COMPONENT_NAME = COMPONENT_NAMES.VOICE_RECORDER;
 
@@ -14,10 +13,13 @@ const VoiceRecorder = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
+  const [transcript, setTranscript] = useState('');
+  
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
-
+  const wsRef = useRef(null);
+  
   useEffect(() => {
     // Verificar la conexión con el servidor al iniciar
     const checkConnection = async () => {
@@ -34,13 +36,90 @@ const VoiceRecorder = () => {
       }
     };
 
-    checkConnection();
+    const setupWebSocket = () => {
+      // Crear WebSocket para la comunicación de audio
+      try {
+        const ws = ApiService.createWebSocketConnection(ApiService.WS_ROUTES.DETECT_AUDIO, {
+          onOpen: () => {
+            Logger.info(COMPONENT_NAME, 'WebSocket de audio conectado');
+            setIsConnected(true);
+            setError(null);
+          },
+          onMessage: handleWebSocketMessage,
+          onClose: () => {
+            Logger.warn(COMPONENT_NAME, 'WebSocket de audio desconectado');
+            setIsConnected(false);
+            setError('Conexión perdida');
+            
+            // Reintentar conexión después de 5 segundos
+            setTimeout(setupWebSocket, 5000);
+          },
+          onError: (err) => {
+            Logger.error(COMPONENT_NAME, 'Error en WebSocket de audio', err);
+            setIsConnected(false);
+            setError('Error en la conexión');
+          }
+        });
+        
+        wsRef.current = ws;
+      } catch (err) {
+        Logger.error(COMPONENT_NAME, 'Error al crear WebSocket', err);
+        setError('No se pudo establecer la conexión WebSocket');
+      }
+    };
+
+    checkConnection().then(setupWebSocket);
 
     // Limpiar recursos al desmontar
     return () => {
       stopMediaStream();
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
   }, []);
+
+  const handleWebSocketMessage = (event) => {
+    try {
+      // Procesar el mensaje recibido en formato estandarizado
+      const data = JSON.parse(event.data);
+      const message = processIncomingMessage(data);
+      
+      // Manejar según el tipo de mensaje
+      switch (message.type) {
+        case 'text':
+          setTranscript(message.text);
+          break;
+          
+        case 'audio':
+          // Si hay texto, mostrarlo
+          if (message.text) {
+            setTranscript(message.text);
+          }
+          
+          // Reproducir el audio automáticamente
+          if (message.audio) {
+            handleMessageActions(message);
+          }
+          break;
+          
+        case 'error':
+          Logger.error(COMPONENT_NAME, 'Error del servidor', message);
+          setError(message.text);
+          break;
+          
+        case 'connection':
+          setIsConnected(message.status === 'connected');
+          break;
+          
+        default:
+          Logger.warn(COMPONENT_NAME, 'Tipo de mensaje no manejado', message);
+      }
+    } catch (error) {
+      Logger.error(COMPONENT_NAME, 'Error al procesar mensaje WebSocket', error);
+    }
+  };
 
   const stopMediaStream = () => {
     if (streamRef.current) {
@@ -105,19 +184,13 @@ const VoiceRecorder = () => {
       const url = URL.createObjectURL(audioBlob);
       setAudioUrl(url);
       
-      // Enviar al servidor para procesamiento
-      const { success, data, error } = await ApiService.processAudio(audioBlob);
-      
-      if (!success || error) {
-        throw new Error(error || 'Error al procesar el audio');
+      // Enviar el audio al WebSocket si está conectado
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(audioBlob);
+        Logger.info(COMPONENT_NAME, 'Audio enviado para procesamiento');
+      } else {
+        throw new Error('No hay conexión WebSocket disponible');
       }
-      
-      // Reproducir respuesta de audio si existe
-      if (data && data.audioBase64) {
-        await playAudio(data.audioBase64);
-      }
-      
-      Logger.info(COMPONENT_NAME, 'Audio procesado con éxito');
     } catch (err) {
       Logger.error(COMPONENT_NAME, 'Error al procesar audio', err);
       setError(`Error al procesar el audio: ${err.message}`);
@@ -127,42 +200,55 @@ const VoiceRecorder = () => {
   const clearError = () => setError(null);
 
   return (
-    <div className="voice-recorder">
-      <h2>🎙️ Grabador de Voz</h2>
-      <div className="controls">
-        <button
-          onClick={isRecording ? stopRecording : startRecording}
-          className={`record-button ${isRecording ? 'recording' : ''}`}
-          disabled={!isConnected}
-          title={!isConnected ? 'Servidor desconectado' : isRecording ? 'Detener grabación' : 'Iniciar grabación'}
-        >
-          {isRecording ? '⏹️ Detener' : '🎤 Grabar'}
-        </button>
-      </div>
-      <div className="recording-status">
-        {isRecording ? 'Grabando...' : 'Listo para grabar'}
-      </div>
-      {audioUrl && (
-        <div className="audio-preview">
-          <audio controls src={audioUrl} className="audio-player">
-            <track kind="captions" src="" label="Subtítulos" />
-            <p>Tu navegador no soporta el elemento de audio.</p>
-          </audio>
+    <div className="card shadow-sm">
+      <div className="card-body">
+        <h5 className="card-title d-flex align-items-center">
+          <i className="bi bi-mic me-2"></i>
+          Grabador de Voz
+        </h5>
+        
+        <div className="d-flex flex-column align-items-center gap-3 py-3">
+          {error && <ErrorMessage message={error} onDismiss={clearError} />}
+
+          <div className="d-flex align-items-center mb-2">
+            <ConnectionStatus isConnected={isConnected} />
+          </div>
+          
+          <button
+            onClick={isRecording ? stopRecording : startRecording}
+            className={`btn ${isRecording ? 'btn-danger' : 'btn-primary'} btn-lg rounded-circle d-flex align-items-center justify-content-center`}
+            disabled={!isConnected}
+            style={{ width: '80px', height: '80px' }}
+          >
+            <i className={`bi ${isRecording ? 'bi-stop-fill' : 'bi-mic'} fs-4`}></i>
+          </button>
+
+          <div className="text-muted small">
+            {isRecording ? 
+              <span className="text-danger">Grabando...</span> : 
+              'Haz clic para grabar'
+            }
+          </div>
+
+          {audioUrl && (
+            <div className="w-100 mt-3">
+              <audio controls className="w-100" src={audioUrl}>
+                <track kind="captions" />
+              </audio>
+            </div>
+          )}
+          
+          {transcript && (
+            <div className="w-100 mt-3">
+              <div className="alert alert-info">
+                <strong>Transcripción:</strong> {transcript}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-      
-      <ConnectionStatus isConnected={isConnected} />
-      
-      <ErrorMessage 
-        message={error}
-        onDismiss={clearError}
-      />
+      </div>
     </div>
   );
-};
-
-VoiceRecorder.propTypes = {
-  // No se requieren props
 };
 
 export default VoiceRecorder;

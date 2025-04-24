@@ -6,13 +6,16 @@ import PropTypes from 'prop-types';
  * @param {boolean} isConnected - Indica si está conectado al servidor 
  */
 const ConnectionStatus = ({ isConnected }) => (
-  <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+  <div className={`badge ${isConnected ? 'bg-success' : 'bg-danger'} d-flex align-items-center`}>
+    <div className={`spinner-grow spinner-grow-sm me-1 ${isConnected ? '' : 'd-none'}`} role="status">
+      <span className="visually-hidden">Conectando...</span>
+    </div>
     {isConnected ? 'Conectado' : 'Desconectado'}
-  </span>
+  </div>
 );
 
 ConnectionStatus.propTypes = {
   isConnected: PropTypes.bool.isRequired
 };
 
-export default ConnectionStatus; 
+export default ConnectionStatus;

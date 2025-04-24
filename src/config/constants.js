@@ -2,17 +2,8 @@
  * Constantes de la aplicación
  */
 
-// URL base para la API
-export const API_BASE_URL = process.env.REACT_APP_BACKEND_URL || 'https://api.ovaonline.tech';
-
-// Rutas de la API
-export const API_ROUTES = {
-  STATUS: '/status',
-  CHAT_WS: '/api/ws/chat',
-  ANALYZE_IMAGE: '/api/analyze-sign-language',
-  VOICE_PROCESSING: '/api/process-voice',
-  IMAGE_PROCESSING: '/api/process-image',
-};
+// Importar API_ROUTES completo desde api.routes para evitar duplicación
+import { API_BASE_URL, API_ROUTES } from './api.routes';
 
 // Nombres de componentes para logs
 export const COMPONENT_NAMES = {
@@ -42,4 +33,4 @@ export default {
   COMPONENT_NAMES,
   WEBSOCKET_CONFIG,
   UI_CONFIG,
-}; 
+};

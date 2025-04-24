@@ -249,6 +249,6 @@ proyecto/
 🎁 Autor / Colaboradores
 
 Creador: Jhon Arley Castillo Vitovis
-Asistencia: ChatGPT (Documentación, Código Base, Flujo)
+Asistencia: Agentcopilot (Documentación, Código Base, Flujo)
 
 ---

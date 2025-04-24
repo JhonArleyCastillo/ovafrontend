@@ -1,164 +1,155 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
-import VoiceRecorder from './components/VoiceRecorder';
-import SignLanguageUploader from './components/SignLanguageUploader';
-import DebugMonitor from './components/DebugMonitor';
-import Logger from './utils/debug-utils';
-import './App.css';
-// Importar la utilidad de diagnóstico
-import './utils/connection-test';
+import ovalogo from './ovalogo.png'; // Importar el logo de OVA
 
-// Nombre del componente para los logs
-const COMPONENT_NAME = 'App';
-
-// Componentes de la landing page
-const Home = () => {
-  // useEffect para hacer scroll al top del contenedor principal
-  useEffect(() => {
-    const mainContent = document.querySelector('.main-content');
-    if (mainContent) {
-      mainContent.scrollTop = 0;
-    }
-  }, []); // El array vacío asegura que se ejecute solo al montar el componente
-
-  return (
-    <div className="home-container">
-      <h1>Bienvenido al Asistente Virtual</h1>
-      <div className="home-content">
-        <VoiceRecorder />
-        <SignLanguageUploader />
-        <Chat />
+// Componentes para las diferentes rutas
+const HomePage = () => (
+  <div className="container p-4">
+    <h1>Bienvenido a OVA</h1>
+    <p className="lead">Asistente Inteligente Multimodal - Su socio en soluciones de IA</p>
+    
+    {/* Hero section con descripción principal */}
+    <div className="row mb-5">
+      <div className="col-md-8">
+        <div className="card border-0 bg-light">
+          <div className="card-body">
+            <h2>Transformando la interacción digital</h2>
+            <p className="fs-5">OVA es una plataforma de asistencia virtual avanzada que combina tecnologías de procesamiento de lenguaje natural, reconocimiento de voz y análisis de imágenes para ofrecer una experiencia interactiva única.</p>
+            <a href="/about" className="btn btn-primary mt-2">Conozca más sobre nosotros</a>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-4 d-flex justify-content-center align-items-center">
+        <img src={ovalogo} alt="OVA Assistant" className="img-fluid rounded shadow" style={{ maxHeight: '250px' }} />
       </div>
     </div>
-  );
-};
+    
+    {/* Sección de características */}
+    <h3 className="mb-4">¿Qué hace único a OVA?</h3>
+    <div className="row mb-5">
+      <div className="col-md-4 mb-3">
+        <div className="card h-100">
+          <div className="card-body">
+            <div className="text-center mb-3">
+              <i className="bi bi-chat-dots text-primary" style={{ fontSize: '2rem' }}></i>
+            </div>
+            <h5 className="card-title text-center">Inteligencia Conversacional</h5>
+            <p className="card-text">Nuestra IA entiende el contexto y mantiene conversaciones naturales y fluidas.</p>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-4 mb-3">
+        <div className="card h-100">
+          <div className="card-body">
+            <div className="text-center mb-3">
+              <i className="bi bi-camera text-primary" style={{ fontSize: '2rem' }}></i>
+            </div>
+            <h5 className="card-title text-center">Análisis Visual</h5>
+            <p className="card-text">Procesamos y analizamos imágenes para reconocer objetos, personas y lenguaje de señas.</p>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-4 mb-3">
+        <div className="card h-100">
+          <div className="card-body">
+            <div className="text-center mb-3">
+              <i className="bi bi-mic text-primary" style={{ fontSize: '2rem' }}></i>
+            </div>
+            <h5 className="card-title text-center">Reconocimiento de Voz</h5>
+            <p className="card-text">Interactúa mediante comandos de voz con respuestas precisas y naturales.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Sección de casos de uso */}
+    <h3 className="mb-4">Soluciones para diversos sectores</h3>
+    <div className="row mb-4">
+      <div className="col-md-6 mb-3">
+        <div className="card h-100">
+          <div className="card-body">
+            <h5 className="card-title">Educación</h5>
+            <p className="card-text">Facilitamos el aprendizaje mediante asistentes virtuales personalizados para estudiantes y profesores.</p>
+            <a href="/services" className="btn btn-outline-primary btn-sm">Más información</a>
+          </div>
+        </div>
+      </div>
+      <div className="col-md-6 mb-3">
+        <div className="card h-100">
+          <div className="card-body">
+            <h5 className="card-title">Atención al Cliente</h5>
+            <p className="card-text">Mejora la experiencia de tus clientes con respuestas rápidas y precisas a sus consultas.</p>
+            <a href="/services" className="btn btn-outline-primary btn-sm">Más información</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    {/* Call to action */}
+    <div className="row mt-5">
+      <div className="col-12 text-center">
+        <div className="card bg-primary text-white">
+          <div className="card-body py-4">
+            <h4>¿Listo para probar nuestro asistente inteligente?</h4>
+            <p>Accede a nuestro chat y descubre el potencial de OVA</p>
+            <a href="/chat" className="btn btn-light">Ir al Chat</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
-const About = () => (
-  <div className="page-container">
+const AboutPage = () => (
+  <div className="container p-4">
     <h1>Sobre Nosotros</h1>
-    <div className="about-content">
-      <p>Somos un equipo apasionado por la inteligencia artificial y la innovación tecnológica.</p>
-      <p>Nuestra misión es hacer la tecnología más accesible y útil para todos.</p>
-    </div>
+    <p>Somos un proyecto innovador que combina tecnologías de procesamiento de lenguaje natural, reconocimiento de voz y análisis de imágenes para crear un asistente virtual completo.</p>
   </div>
 );
 
-const Services = () => (
-  <div className="page-container">
+const ServicesPage = () => (
+  <div className="container p-4">
     <h1>Nuestros Servicios</h1>
-    <div className="services-grid">
-      <div className="service-card">
-        <h3>Asistente Virtual por Voz</h3>
-        <p>Interactúa naturalmente con nuestro asistente mediante comandos de voz. Graba mensajes de voz y recibe respuestas tanto en audio como en texto, permitiendo una comunicación fluida y accesible.</p>
-      </div>
-      <div className="service-card">
-        <h3>Intérprete de Lenguaje de Señas</h3>
-        <p>Sube imágenes de lenguaje de señas y obtén interpretaciones instantáneas. Nuestro sistema de IA analiza las señas y proporciona traducciones precisas con niveles de confianza.</p>
-      </div>
-      <div className="service-card">
-        <h3>Chat Inteligente</h3>
-        <p>Comunícate por texto con nuestro asistente virtual. Envía mensajes, imágenes y recibe respuestas contextuales. Ideal para consultas rápidas y soporte continuo.</p>
-      </div>
-      <div className="service-card">
-        <h3>Accesibilidad Universal</h3>
-        <p>Diseñado para ser accesible a todos los usuarios, independientemente de sus capacidades. Interfaz adaptativa que soporta múltiples formas de interacción: voz, texto e imágenes.</p>
-      </div>
-    </div>
+    <ul className="list-group">
+      <li className="list-group-item">Asistente Virtual de Voz</li>
+      <li className="list-group-item">Chat Inteligente</li>
+      <li className="list-group-item">Análisis de Imágenes</li>
+      <li className="list-group-item">Reconocimiento de Lenguaje de Señas</li>
+    </ul>
   </div>
 );
 
-const Contact = () => (
-  <div className="page-container">
+const ContactPage = () => (
+  <div className="container p-4">
     <h1>Contacto</h1>
-    <div className="contact-form">
-      <form>
-        <div className="form-group">
-          <label htmlFor="name">Nombre</label>
-          <input type="text" id="name" name="name" />
-        </div>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input type="email" id="email" name="email" />
-        </div>
-        <div className="form-group">
-          <label htmlFor="message">Mensaje</label>
-          <textarea id="message" name="message"></textarea>
-        </div>
-        <button type="submit">Enviar Mensaje</button>
-      </form>
-    </div>
+    <p>Para más información, por favor contáctenos:</p>
+    <p>Email: info@ova.com</p>
+    <p>Teléfono: +123 456 7890</p>
+  </div>
+);
+
+const ChatPage = () => (
+  <div className="flex-grow-1 d-flex flex-column overflow-hidden">
+    <Chat />
   </div>
 );
 
 function App() {
-  const [appState, setAppState] = useState({
-    initialized: false,
-    route: window.location.pathname
-  });
-  
-  // Registrar información de inicialización
-  useEffect(() => {
-    Logger.info(COMPONENT_NAME, 'Aplicación inicializada', {
-      env: process.env.NODE_ENV,
-      backendUrl: process.env.REACT_APP_BACKEND_URL || 'https://api.ovaonline.tech'
-    });
-    
-    setAppState(prev => ({
-      ...prev,
-      initialized: true
-    }));
-    
-    // Registrar cambios de ruta
-    const handleRouteChange = () => {
-      const newRoute = window.location.pathname;
-      Logger.debug(COMPONENT_NAME, `Cambio de ruta: ${newRoute}`);
-      setAppState(prev => ({ ...prev, route: newRoute }));
-    };
-    
-    window.addEventListener('popstate', handleRouteChange);
-    
-    // Añadir mensaje en consola sobre la utilidad de diagnóstico
-    if (process.env.NODE_ENV === 'production') {
-      console.info(
-        '%c🔍 Herramienta de diagnóstico disponible',
-        'background: #4CAF50; color: white; padding: 5px; border-radius: 3px; font-weight: bold;'
-      );
-      console.info(
-        '%cPara diagnosticar problemas de conexión, ejecuta en la consola: %ctestConnection()',
-        'color: #333; font-size: 14px;',
-        'color: #1976D2; font-weight: bold; font-size: 14px;'
-      );
-    }
-    
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-      Logger.info(COMPONENT_NAME, 'Aplicación desmontada');
-    };
-  }, []);
-
   return (
     <Router>
-      <div className="app">
+      <div className="d-flex vh-100 overflow-hidden">
         <Sidebar />
-        <main className="main-content">
+        <main className="flex-grow-1 overflow-auto">
           <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/contact" element={<Contact />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/chat" element={<ChatPage />} />
           </Routes>
         </main>
-        
-        {/* DebugMonitor solo se muestra en desarrollo */}
-        {process.env.NODE_ENV !== 'production' && (
-          <DebugMonitor 
-            isVisible={false} 
-            title="Monitor de Depuración"
-            states={{ ...appState, timestamp: new Date().toLocaleTimeString() }}
-          />
-        )}
       </div>
     </Router>
   );

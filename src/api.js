@@ -1,93 +1,38 @@
-// Configuración de rutas
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://api.ovaonline.tech';
-const WS_PROTOCOL = 'wss:'; // Forzar WSS en producción
-const WS_URL = `${WS_PROTOCOL}//${API_BASE_URL.replace(/^https?:\/\//, '')}/api/detect`;
+/**
+ * ARCHIVO DE COMPATIBILIDAD
+ * 
+ * Este archivo ahora solo importa y reexporta ApiService desde services/api.js
+ * para mantener compatibilidad con componentes existentes.
+ * 
+ * TODO: Actualizar todos los importes para usar directamente 'services/api.js'
+ * y luego eliminar este archivo.
+ */
 
-// Clase para manejar la conexión WebSocket
-class WebSocketManager {
-  constructor() {
-    this.socket = null;
-    this.reconnectAttempts = 0;
-    this.maxReconnectAttempts = 5;
-    this.reconnectDelay = 1000;
-    this.messageHandlers = new Set();
-    this.connect();
+import ApiService from './services/api.js';
+
+// Exportar como default
+export default ApiService;
+
+// Exportar también las funciones de WebSocket para compatibilidad
+export const createWebSocketConnection = ApiService.createWebSocketConnection;
+export const checkServerStatus = ApiService.checkServerStatus;
+export const processImage = ApiService.processImage;
+export const analyzeSignLanguage = ApiService.analyzeSignLanguageImage;
+export const processAudio = ApiService.processAudio;
+export const sendAudioToWebSocket = ApiService.sendAudioToWebSocket;
+export const sendTextToWebSocket = ApiService.sendTextToWebSocket;
+
+// Funciones de compatibilidad para las antiguas funciones exportadas
+export const enviarAudio = (audioBlob, ws) => {
+  if (ws) {
+    return ApiService.sendAudioToWebSocket(audioBlob, ws);
+  } else {
+    console.warn('Se llamó a enviarAudio sin WebSocket, usando HTTP fallback');
+    return ApiService.processAudio(audioBlob);
   }
-
-  connect() {
-    try {
-      this.socket = new WebSocket(WS_URL);
-      
-      this.socket.onopen = () => {
-        console.log('WebSocket conectado');
-        this.reconnectAttempts = 0;
-      };
-
-      this.socket.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          this.messageHandlers.forEach(handler => handler(data));
-        } catch (error) {
-          console.error('Error al procesar mensaje:', error);
-        }
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('Error en WebSocket:', error);
-        this.handleReconnect();
-      };
-
-      this.socket.onclose = () => {
-        console.log('WebSocket desconectado');
-        this.handleReconnect();
-      };
-    } catch (error) {
-      console.error('Error al crear WebSocket:', error);
-      this.handleReconnect();
-    }
-  }
-
-  handleReconnect() {
-    if (this.reconnectAttempts < this.maxReconnectAttempts) {
-      this.reconnectAttempts++;
-      setTimeout(() => this.connect(), this.reconnectDelay * this.reconnectAttempts);
-    }
-  }
-
-  send(data) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(data);
-    } else {
-      console.error('WebSocket no está conectado');
-    }
-  }
-
-  addMessageHandler(handler) {
-    this.messageHandlers.add(handler);
-    return () => this.messageHandlers.delete(handler);
-  }
-}
-
-// Instancia global del WebSocket
-const wsManager = new WebSocketManager();
-
-// Funciones de exportación
-export const enviarAudio = (audioBlob) => {
-  audioBlob.arrayBuffer().then((buffer) => {
-    wsManager.send(buffer);
-  });
 };
 
 export const escucharRespuestas = (callback) => {
-  return wsManager.addMessageHandler(({ texto, audio }) => {
-    callback({ texto, audioBase64: audio });
-  });
+  console.warn('escucharRespuestas está deprecado, usar ApiService.createWebSocketConnection');
+  return () => {}; // Devolver función de limpieza no-op
 };
-
-// Rutas de la API
-export const API_ROUTES = {
-  WEBSOCKET_URL: WS_URL,
-  IMAGE_PROCESSING: `${API_BASE_URL}/procesar-imagen`,
-};
-
-export default API_ROUTES;

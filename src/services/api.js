@@ -1,11 +1,15 @@
 import Logger, { safeApiCall, createMonitoredWebSocket } from '../utils/debug-utils';
-import { API_BASE_URL, API_ROUTES, COMPONENT_NAMES } from '../config/constants';
+import { API_BASE_URL, API_ROUTES, WS_ROUTES } from '../config/api.routes';
+import { COMPONENT_NAMES } from '../config/constants';
+import { blobToBase64 } from '../utils/media-utils';
+import { createImageMessage, createTextMessage, createAudioMessage } from '../utils/message-utils';
 
 /**
  * Clase para manejar las operaciones de la API
  */
 class ApiService {
   static COMPONENT_NAME = COMPONENT_NAMES.API_SERVICE;
+  static WS_ROUTES = WS_ROUTES;
 
   /**
    * Verifica el estado de la conexión con el servidor
@@ -32,7 +36,7 @@ class ApiService {
             
       const data = await response.json();
       Logger.info(this.COMPONENT_NAME, `Respuesta del servidor: ${JSON.stringify(data)}`);
-      return data && (data.status === 'connected' || data.status === 'ok');
+      return data && (data.status === 'connected' || data.status === 'ok' || data.status === 'online');
     } catch (error) {
       Logger.error(this.COMPONENT_NAME, `Error al verificar conexión: ${error.message}`, error);
       console.error('Error completo:', error);
@@ -42,32 +46,33 @@ class ApiService {
 
   /**
    * Crea una conexión WebSocket
-   * @param {string} path - Ruta específica para la conexión WebSocket
+   * @param {string} url - Ruta específica para la conexión WebSocket
    * @param {Object} handlers - Manejadores de eventos del WebSocket
    * @returns {WebSocket} - Instancia del WebSocket
    */
-  static createWebSocketConnection(path, handlers) {
+  static createWebSocketConnection(url, handlers = {}) {
     try {
+      // Construir la URL del WebSocket correctamente
       let wsUrl = '';
       
-      // Construir la URL del WebSocket correctamente
-      if (API_BASE_URL.startsWith('https://')) {
+      if (url.startsWith('ws://') || url.startsWith('wss://')) {
+        wsUrl = url;
+      } else if (API_BASE_URL.startsWith('https://')) {
         wsUrl = API_BASE_URL.replace('https://', 'wss://');
+        wsUrl += url;
       } else if (API_BASE_URL.startsWith('http://')) {
         wsUrl = API_BASE_URL.replace('http://', 'ws://');
+        wsUrl += url;
       } else {
         // Si no tiene protocolo, asumimos que es una URL relativa y usamos wss en producción
         wsUrl = window.location.protocol === 'https:' 
-          ? `wss://${window.location.host}${API_BASE_URL}`
-          : `ws://${window.location.host}${API_BASE_URL}`;
+          ? `wss://${window.location.host}${url}`
+          : `ws://${window.location.host}${url}`;
       }
       
-      const wsEndpoint = `${wsUrl}${path}`;
+      Logger.debug(this.COMPONENT_NAME, `Creando conexión WebSocket a: ${wsUrl}`);
       
-      Logger.debug(this.COMPONENT_NAME, `Creando conexión WebSocket a: ${wsEndpoint}`);
-      Logger.info(this.COMPONENT_NAME, `API_BASE_URL: ${API_BASE_URL}, path: ${path}`);
-      
-      const wsInstance = createMonitoredWebSocket(wsEndpoint, this.COMPONENT_NAME);
+      const wsInstance = createMonitoredWebSocket(wsUrl, this.COMPONENT_NAME);
       
       if (handlers.onOpen) wsInstance.onopen = handlers.onOpen;
       if (handlers.onMessage) wsInstance.onmessage = handlers.onMessage;
@@ -76,32 +81,50 @@ class ApiService {
       
       return wsInstance;
     } catch (error) {
-      Logger.error(this.COMPONENT_NAME, 'Error al crear WebSocket: ${error.message}', error);
+      Logger.error(this.COMPONENT_NAME, `Error al crear WebSocket: ${error.message}`, error);
       console.error('Error completo al crear WebSocket:', error);
       throw error;
     }
   }
 
   /**
-   * Analiza una imagen de lenguaje de señas
-   * @param {string} base64Image - Imagen en formato base64
-   * @returns {Promise<Object>} - Resultados del análisis
+   * Método base para procesar imágenes (método interno)
+   * @param {string|Blob|File} imageInput - Imagen para procesar (base64 o Blob/File)
+   * @param {string} endpoint - Endpoint de la API
+   * @param {string} logMessage - Mensaje para el registro
+   * @param {string} errorMessage - Mensaje de error
+   * @returns {Promise<Object>} - Resultados del procesamiento
+   * @private
    */
-  static async analyzeSignLanguageImage(base64Image) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.ANALYZE_IMAGE}`;
-    Logger.debug(this.COMPONENT_NAME, `Enviando imagen al servidor: ${endpoint}`);
+  static async _processImageBase(imageInput, endpoint, logMessage, errorMessage) {
+    Logger.debug(this.COMPONENT_NAME, `${logMessage}: ${endpoint}`);
     
     return await safeApiCall(
       async () => {
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64Image }),
-        };
-                  
+        let requestOptions;
+        
+        // Determinar el tipo de entrada y preparar la petición
+        if (typeof imageInput === 'string' && imageInput.includes('base64')) {
+          // Es una cadena base64, enviamos como JSON
+          const base64Image = imageInput.split('base64,')[1] || imageInput;
+          requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(createImageMessage(base64Image)),
+          };
+        } else {
+          // Es un Blob o File, enviamos como FormData
+          const formData = new FormData();
+          formData.append('file', imageInput);
+          requestOptions = {
+            method: 'POST',
+            body: formData,
+          };
+        }
+        
         const response = await fetch(endpoint, requestOptions);
         if (!response.ok) {
-          throw new Error('Error del servidor: ${response.status}');
+          throw new Error(`Error del servidor: ${response.status}`);
         }
                   
         const responseData = await response.json();
@@ -112,37 +135,36 @@ class ApiService {
         return responseData;
       },
       this.COMPONENT_NAME,
+      errorMessage
+    );
+  }
+
+  /**
+   * Analiza una imagen de lenguaje de señas
+   * @param {string|Blob|File} image - Imagen para analizar (base64 o Blob/File)
+   * @returns {Promise<Object>} - Resultados del análisis
+   */
+  static async analyzeSignLanguageImage(image) {
+    const endpoint = `${API_BASE_URL}${API_ROUTES.ANALYZE_SIGN_LANGUAGE}`;
+    return this._processImageBase(
+      image, 
+      endpoint, 
+      'Enviando imagen al servidor', 
       'Error al analizar imagen'
     );
   }
 
   /**
    * Procesa una imagen genérica
-   * @param {File} imageFile - Archivo de imagen
+   * @param {File|Blob|string} imageInput - Archivo de imagen o imagen base64
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
-  static async processImage(imageFile) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.IMAGE_PROCESSING}`;
-    Logger.debug(this.COMPONENT_NAME, `Procesando imagen: ${endpoint}`);
-    
-    return await safeApiCall(
-      async () => {
-        const formData = new FormData();
-        formData.append('file', imageFile);
-
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Error del servidor: ${response.status}');
-        }
-
-        const responseData = await response.json();
-        return responseData;
-      },
-      this.COMPONENT_NAME,
+  static async processImage(imageInput) {
+    const endpoint = `${API_BASE_URL}${API_ROUTES.PROCESS_IMAGE}`;
+    return this._processImageBase(
+      imageInput, 
+      endpoint, 
+      'Procesando imagen', 
       'Error al procesar imagen'
     );
   }
@@ -153,11 +175,12 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
   static async processAudio(audioBlob) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.VOICE_PROCESSING}`;
+    const endpoint = `${API_BASE_URL}${API_ROUTES.PROCESS_VOICE}`;
     Logger.debug(this.COMPONENT_NAME, `Procesando audio: ${endpoint}`);
     
     return await safeApiCall(
       async () => {
+        // Usamos FormData para envío HTTP
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
 
@@ -167,7 +190,7 @@ class ApiService {
         });
 
         if (!response.ok) {
-          throw new Error('Error del servidor: ${response.status}');
+          throw new Error(`Error del servidor: ${response.status}`);
         }
 
         const responseData = await response.json();
@@ -177,6 +200,71 @@ class ApiService {
       'Error al procesar audio'
     );
   }
+  
+  /**
+   * Método base para enviar datos por WebSocket
+   * @param {WebSocket} ws - Conexión WebSocket activa
+   * @param {Object|string} data - Datos a enviar
+   * @param {string} errorMessage - Mensaje de error
+   * @returns {boolean} - true si se envió correctamente
+   * @private
+   */
+  static _sendToWebSocket(ws, data, errorMessage) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      throw new Error('La conexión WebSocket no está abierta');
+    }
+
+    try {
+      if (typeof data === 'string') {
+        ws.send(data);
+      } else {
+        ws.send(JSON.stringify(data));
+      }
+      return true;
+    } catch (error) {
+      Logger.error(this.COMPONENT_NAME, `${errorMessage}: ${error.message}`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Envía un audio para procesamiento a través de WebSocket
+   * @param {Blob} audioBlob - Blob de audio
+   * @param {WebSocket} ws - Conexión WebSocket activa
+   * @returns {Promise<boolean>} - true si se envió correctamente
+   */
+  static async sendAudioToWebSocket(audioBlob, ws) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      throw new Error('La conexión WebSocket no está abierta');
+    }
+
+    try {
+      // Para WebSocket, podemos enviar el audioBlob directamente para binario
+      // O codificarlo a base64 si queremos enviarlo como JSON
+      if (ws.binaryType === 'arraybuffer') {
+        return this._sendToWebSocket(ws, audioBlob, 'Error al enviar audio por WebSocket');
+      } else {
+        // Convertir a base64 para enviar como JSON
+        const base64Audio = await blobToBase64(audioBlob);
+        const audioMessage = createAudioMessage(base64Audio);
+        return this._sendToWebSocket(ws, audioMessage, 'Error al enviar audio por WebSocket');
+      }
+    } catch (error) {
+      Logger.error(this.COMPONENT_NAME, `Error al enviar audio por WebSocket: ${error.message}`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Envía un mensaje de texto a través de WebSocket
+   * @param {string} text - Texto del mensaje
+   * @param {WebSocket} ws - Conexión WebSocket activa
+   * @returns {boolean} - true si se envió correctamente
+   */
+  static sendTextToWebSocket(text, ws) {
+    const textMessage = createTextMessage(text);
+    return this._sendToWebSocket(ws, textMessage, 'Error al enviar texto por WebSocket');
+  }
 }
 
-export default ApiService; 
+export default ApiService;

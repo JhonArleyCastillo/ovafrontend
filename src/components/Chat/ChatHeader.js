@@ -7,19 +7,46 @@ import { ConnectionStatus } from '../common';
  * @param {Object} props - Propiedades del componente
  * @param {string} props.title - Título del chat
  * @param {boolean} props.isConnected - Estado de la conexión
+ * @param {boolean} props.autoPlayAudio - Indica si el audio se reproduce automáticamente
+ * @param {function} props.onToggleAutoPlayAudio - Función para alternar la reproducción automática
  */
-const ChatHeader = ({ title = 'Chat con IA', isConnected }) => {
+const ChatHeader = ({ 
+  title = 'Chat Inteligente', 
+  isConnected, 
+  autoPlayAudio = true, 
+  onToggleAutoPlayAudio 
+}) => {
   return (
-    <div className="chat-header">
-      <h2>{title}</h2>
-      <ConnectionStatus isConnected={isConnected} />
+    <div className="d-flex justify-content-between align-items-center">
+      <div className="d-flex align-items-center">
+        <h5 className="mb-0 me-3">{title}</h5>
+        <ConnectionStatus isConnected={isConnected} />
+      </div>
+      
+      {onToggleAutoPlayAudio && (
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="autoPlaySwitch"
+            checked={autoPlayAudio}
+            onChange={onToggleAutoPlayAudio}
+          />
+          <label className="form-check-label" htmlFor="autoPlaySwitch">
+            <i className={`bi ${autoPlayAudio ? 'bi-volume-up' : 'bi-volume-mute'} me-1`}></i>
+            Audio automático
+          </label>
+        </div>
+      )}
     </div>
   );
 };
 
 ChatHeader.propTypes = {
   title: PropTypes.string,
-  isConnected: PropTypes.bool.isRequired
+  isConnected: PropTypes.bool.isRequired,
+  autoPlayAudio: PropTypes.bool,
+  onToggleAutoPlayAudio: PropTypes.func
 };
 
-export default ChatHeader; 
+export default ChatHeader;
