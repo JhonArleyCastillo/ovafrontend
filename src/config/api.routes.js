@@ -22,6 +22,20 @@ export const REST_ROUTES = {
   PROCESS_IMAGE: `${API_BASE_URL}/api/process-image`,
   ANALYZE_SIGN_LANGUAGE: `${API_BASE_URL}/api/analyze-sign-language`,
   PROCESS_VOICE: `${API_BASE_URL}/api/process-voice`,
+  // Rutas de autenticación
+  AUTH_LOGIN: `${API_BASE_URL}/api/auth/token`,
+  AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout`,
+  ADMIN_LIST: `${API_BASE_URL}/api/auth/admins`,
+  ADMIN_SESSIONS: `${API_BASE_URL}/api/auth/sessions`,
+  
+  // Rutas para operaciones con la base de datos
+  // Usuarios
+  USUARIOS: `${API_BASE_URL}/api/usuarios`,
+  USUARIO_BY_ID: (id) => `${API_BASE_URL}/api/usuarios/${id}`,
+  
+  // Contactos
+  CONTACTOS: `${API_BASE_URL}/api/contacto`,
+  CONTACTO_BY_ID: (id) => `${API_BASE_URL}/api/contacto/${id}`,
 };
 
 // Exportar todas las rutas juntas para facilitar importación

@@ -13,6 +13,7 @@ export const COMPONENT_NAMES = {
   IMAGE_UPLOADER: 'ImageUploader',
   API_SERVICE: 'ApiService',
   CHAT_UTILS: 'ChatUtils',
+  DATABASE_SERVICE: 'DatabaseService',
 };
 
 // Configuración de WebSocket

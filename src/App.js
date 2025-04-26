@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 import ovalogo from './ovalogo.png'; // Importar el logo de OVA
+import AdminLogin from './components/admin/AdminLogin';
+import AdminDashboard from './components/admin/AdminDashboard';
+import PrivateRoute from './components/admin/PrivateRoute';
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -121,14 +124,177 @@ const ServicesPage = () => (
   </div>
 );
 
-const ContactPage = () => (
-  <div className="container p-4">
-    <h1>Contacto</h1>
-    <p>Para más información, por favor contáctenos:</p>
-    <p>Email: info@ova.com</p>
-    <p>Teléfono: +123 456 7890</p>
-  </div>
-);
+const ContactPage = () => {
+  const [formData, setFormData] = React.useState({
+    message: '',
+    contactInfo: ''
+  });
+  const [submitted, setSubmitted] = React.useState(false);
+  const [errors, setErrors] = React.useState({
+    message: '',
+    contactInfo: ''
+  });
+
+  const validateEmail = (email) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+    
+    // Limpiar errores cuando el usuario comienza a escribir
+    setErrors(prevState => ({
+      ...prevState,
+      [name]: ''
+    }));
+
+    // Validar email mientras se escribe solo si ya tiene contenido
+    if (name === 'contactInfo' && value.trim() !== '' && !validateEmail(value)) {
+      setErrors(prevState => ({
+        ...prevState,
+        contactInfo: 'Por favor ingresa un correo electrónico válido (ejemplo: usuario@dominio.com)'
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    let valid = true;
+    const newErrors = { message: '', contactInfo: '' };
+    
+    // Validar mensaje
+    if (!formData.message.trim()) {
+      newErrors.message = 'Por favor ingresa tu mensaje';
+      valid = false;
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = 'Tu mensaje es muy corto, por favor sé más específico';
+      valid = false;
+    }
+    
+    // Validar información de contacto (asumiendo que es un email)
+    if (!formData.contactInfo.trim()) {
+      newErrors.contactInfo = 'Por favor ingresa tu correo electrónico';
+      valid = false;
+    } else if (!validateEmail(formData.contactInfo)) {
+      newErrors.contactInfo = 'Por favor ingresa un correo electrónico válido (ejemplo: usuario@dominio.com)';
+      valid = false;
+    }
+    
+    setErrors(newErrors);
+    return valid;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+      console.log('Formulario enviado:', formData);
+      // Aquí iría la lógica para enviar los datos a un servidor
+      setSubmitted(true);
+      setFormData({ message: '', contactInfo: '' });
+      setErrors({ message: '', contactInfo: '' });
+    }
+  };
+
+  return (
+    <div className="container p-4">
+      <h1>Contáctenos</h1>
+      <div className="row">
+        <div className="col-md-8 mx-auto">
+          {submitted ? (
+            <div className="alert alert-success" role="alert">
+              <h4 className="alert-heading">¡Gracias por contactarnos!</h4>
+              <p>Hemos recibido tu mensaje. Nos pondremos en contacto contigo pronto.</p>
+              <hr />
+              <button 
+                className="btn btn-outline-success btn-sm" 
+                onClick={() => setSubmitted(false)}
+              >
+                Enviar otro mensaje
+              </button>
+            </div>
+          ) : (
+            <div className="card border-0 shadow-sm">
+              <div className="card-body p-4">
+                <p className="lead mb-4">Completa el formulario a continuación para enviarnos tu consulta o solicitud. Nos pondremos en contacto contigo lo antes posible.</p>
+                
+                <form onSubmit={handleSubmit} noValidate>
+                  <div className="mb-4">
+                    <label htmlFor="message" className="form-label">Tu solicitud o consulta:</label>
+                    <textarea 
+                      className={`form-control ${errors.message ? 'is-invalid' : ''}`}
+                      id="message" 
+                      name="message" 
+                      rows="5" 
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Escribe aquí tu mensaje..."
+                      required
+                    ></textarea>
+                    {errors.message && (
+                      <div className="invalid-feedback">
+                        {errors.message}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="contactInfo" className="form-label">Correo electrónico:</label>
+                    <input 
+                      type="email" 
+                      className={`form-control ${errors.contactInfo ? 'is-invalid' : ''}`}
+                      id="contactInfo" 
+                      name="contactInfo" 
+                      value={formData.contactInfo}
+                      onChange={handleChange}
+                      placeholder="ejemplo@dominio.com"
+                      required
+                    />
+                    {errors.contactInfo && (
+                      <div className="invalid-feedback">
+                        {errors.contactInfo}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="d-grid">
+                    <button type="submit" className="btn btn-primary">
+                      Enviar mensaje
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+          
+          <div className="card mt-4 border-0 shadow-sm">
+            <div className="card-body p-4">
+              <h5 className="card-title">Información de contacto</h5>
+              <ul className="list-unstyled">
+                <li className="mb-2">
+                  <i className="bi bi-envelope me-2"></i>
+                  Email: info@ova.com
+                </li>
+                <li className="mb-2">
+                  <i className="bi bi-telephone me-2"></i>
+                  Teléfono: +573204578232
+                </li>
+                <li>
+                  <i className="bi bi-geo-alt me-2"></i>
+                  Dirección: Calle 4 con carrera 25a#34 , Popayan, Colombia
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const ChatPage = () => (
   <div className="flex-grow-1 d-flex flex-column overflow-hidden">
@@ -139,18 +305,31 @@ const ChatPage = () => (
 function App() {
   return (
     <Router>
-      <div className="d-flex vh-100 overflow-hidden">
-        <Sidebar />
-        <main className="flex-grow-1 overflow-auto">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        {/* Rutas de administración */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/dashboard" element={
+          <PrivateRoute>
+            <AdminDashboard />
+          </PrivateRoute>
+        } />
+        
+        {/* Rutas públicas con sidebar */}
+        <Route path="*" element={
+          <div className="d-flex vh-100 overflow-hidden">
+            <Sidebar />
+            <main className="flex-grow-1 overflow-auto">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/services" element={<ServicesPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/chat" element={<ChatPage />} />
+              </Routes>
+            </main>
+          </div>
+        } />
+      </Routes>
     </Router>
   );
 }
