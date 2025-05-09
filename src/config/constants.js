@@ -14,6 +14,7 @@ export const COMPONENT_NAMES = {
   API_SERVICE: 'ApiService',
   CHAT_UTILS: 'ChatUtils',
   DATABASE_SERVICE: 'DatabaseService',
+  AUTH_SERVICE: 'AuthService',  // Añadido para el servicio de autenticación
 };
 
 // Configuración de WebSocket

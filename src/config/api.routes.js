@@ -2,10 +2,22 @@
  * Configuración centralizada de rutas API para el frontend.
  */
 
+// Definir valores por defecto para los entornos
+const DEFAULT_PROD_API_URL = 'https://api.ovaonline.tech';
+const DEFAULT_DEV_API_URL = 'http://localhost:8000';
+// Ya no usamos la IP directa para evitar errores de certificado SSL
+const BACKUP_API_URL = DEFAULT_PROD_API_URL; // Usamos el dominio en lugar de la IP
+
+// Timeout para peticiones API en milisegundos
+export const API_TIMEOUT = 10000; // 10 segundos
+
 // URL base de la API - Determina automáticamente basado en el entorno
 export const API_BASE_URL = process.env.NODE_ENV === 'production' 
-  ? process.env.REACT_APP_PROD_API_URL || 'https://api.ovaonline.tech'
-  : process.env.REACT_APP_DEV_API_URL || 'http://localhost:8000';
+  ? process.env.REACT_APP_PROD_API_URL || DEFAULT_PROD_API_URL
+  : process.env.REACT_APP_DEV_API_URL || DEFAULT_DEV_API_URL;
+
+// URL de respaldo para intentar si la principal falla
+export const API_BACKUP_URL = process.env.REACT_APP_BACKUP_API_URL || BACKUP_API_URL;
 
 export const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 export const WS_BASE_URL = `${WS_PROTOCOL}//${API_BASE_URL.replace(/^https?:\/\//, '')}`;

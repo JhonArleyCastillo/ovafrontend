@@ -10,7 +10,7 @@ import PrivateRoute from './components/admin/PrivateRoute';
 // Componentes para las diferentes rutas
 const HomePage = () => (
   <div className="container p-4">
-    <h1>Bienvenido a OVA</h1>
+    <h1>Bienvenido a HelpOVA</h1>
     <p className="lead">Asistente Inteligente Multimodal - Su socio en soluciones de IA</p>
     
     {/* Hero section con descripción principal */}

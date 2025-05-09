@@ -1,5 +1,5 @@
 import Logger from '../utils/debug-utils';
-import { API_BASE_URL, API_ROUTES } from '../config/api.routes';
+import { API_BASE_URL, API_ROUTES, API_TIMEOUT } from '../config/api.routes';
 import { COMPONENT_NAMES } from '../config/constants';
 import AuthService from './auth.service';
 
@@ -45,13 +45,35 @@ class DatabaseService {
         options.body = JSON.stringify(body);
       }
       
-      const response = await fetch(url, options);
+      // Implementar timeout usando AbortController
+      const controller = new AbortController();
+      options.signal = controller.signal;
+      const timeout = setTimeout(() => controller.abort(), API_TIMEOUT);
+      
+      let response;
+      try {
+        response = await fetch(url, options);
+        // Limpiar el tiempo de espera una vez que la solicitud se completa
+        clearTimeout(timeout);
+      } catch (error) {
+        // Si se agotó el tiempo o hay un error de red, lanzamos un error específico
+        if (error.name === 'AbortError') {
+          throw new Error('La solicitud al servidor tardó demasiado tiempo. Por favor, inténtalo de nuevo más tarde.');
+        } else {
+          throw new Error(`Error de conexión: ${error.message}`);
+        }
+      }
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ 
-          detail: `Error ${response.status}: ${response.statusText}` 
-        }));
-        throw new Error(errorData.detail || `Error ${response.status}`);
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.detail || `Error ${response.status}: ${response.statusText}`;
+        } catch (e) {
+          // Si no podemos parsear la respuesta como JSON
+          errorMessage = `Error ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
       
       // Si es 204 No Content, no intentar parsear JSON
@@ -61,8 +83,18 @@ class DatabaseService {
       
       return await response.json();
     } catch (error) {
-      Logger.error(this.COMPONENT_NAME, `Error en petición API: ${error.message}`, error);
-      throw error;
+      // Mejorar los mensajes de error para problemas comunes
+      let errorMessage = error.message;
+      
+      if (error.message.includes('NetworkError') || 
+          error.message.includes('Failed to fetch') || 
+          error.message.includes('Network request failed')) {
+        
+        errorMessage = 'No se pudo conectar al servidor. Por favor, verifica tu conexión a internet o inténtalo más tarde.';
+      }
+      
+      Logger.error(this.COMPONENT_NAME, `Error en petición API: ${errorMessage}`, error);
+      throw new Error(errorMessage);
     }
   }
   
