@@ -5,18 +5,26 @@ import Logger from './debug-utils';
  */
 class NetworkUtils {
   static COMPONENT_NAME = 'NetworkUtils';
+  static IS_PRODUCTION = process.env.NODE_ENV === 'production';
   
   /**
-   * Asegura que una URL use HTTPS si estamos en una página HTTPS
+   * Asegura que una URL use HTTPS si estamos en una página HTTPS o en producción
    * @param {string} url - URL a verificar y convertir si es necesario
    * @returns {string} - URL con el protocolo correcto
    */
   static ensureSecureUrl(url) {
-    // Si estamos en una página HTTPS, forzamos HTTPS en todas las URLs
-    if (window.location.protocol === 'https:' && url.startsWith('http:')) {
-      Logger.info(this.COMPONENT_NAME, `Cambiando ${url} a HTTPS para evitar problemas de contenido mixto`);
+    // Si estamos en una página HTTPS o en producción, forzamos HTTPS en todas las URLs excepto localhost
+    if ((window.location.protocol === 'https:' || this.IS_PRODUCTION) && 
+         url.startsWith('http:') && !url.includes('localhost')) {
+      Logger.info(this.COMPONENT_NAME, `Cambiando ${url} a HTTPS para cumplir con política de seguridad`);
       return url.replace('http:', 'https:');
     }
+    
+    // En producción, advertir sobre URLs inseguras (pero permitir localhost)
+    if (this.IS_PRODUCTION && url.startsWith('http:') && !url.includes('localhost')) {
+      Logger.warn(this.COMPONENT_NAME, `URL insegura detectada en producción: ${url}`);
+    }
+    
     return url;
   }
   
@@ -227,18 +235,38 @@ class NetworkUtils {
  * @returns {Promise<{bestServer: string|null, results: Object}>} - El mejor servidor disponible
  */
 export const findBestAvailableServer = async (serverUrls, timeout = 5000) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  
   // Filtrar URLs inválidas o que usen directamente IP con HTTPS
-  const validServerUrls = serverUrls.filter(url => {
+  let validServerUrls = serverUrls.filter(url => {
     // Evitar URLs HTTPS que usen IP directamente (causará error de certificado)
     if (url.startsWith('https://') && /^https:\/\/\d+\.\d+\.\d+\.\d+/.test(url)) {
       console.warn(`Omitiendo URL inválida: ${url} - No se puede usar HTTPS con IP directa`);
       return false;
     }
+    
+    // En producción, filtrar URLs HTTP que no sean localhost
+    if (isProduction && url.startsWith('http:') && !url.includes('localhost')) {
+      console.warn(`Omitiendo URL insegura en producción: ${url} - Se requiere HTTPS`);
+      return false;
+    }
+    
     return true;
   });
 
   if (!validServerUrls.length) {
     return { bestServer: null, results: { error: 'No hay URLs de servidor válidas' } };
+  }
+  
+  // En producción, dar prioridad a URLs HTTPS
+  if (isProduction) {
+    // Ordenar para que las URLs HTTPS aparezcan primero
+    validServerUrls.sort((a, b) => {
+      if (a.startsWith('https:') && !b.startsWith('https:')) return -1;
+      if (!a.startsWith('https:') && b.startsWith('https:')) return 1;
+      return 0;
+    });
+      console.info('URLs ordenadas por prioridad de seguridad:', validServerUrls);
   }
 
   return NetworkUtils.findBestAvailableServer(validServerUrls, timeout);

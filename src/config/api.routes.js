@@ -12,12 +12,26 @@ const BACKUP_API_URL = DEFAULT_PROD_API_URL; // Usamos el dominio en lugar de la
 export const API_TIMEOUT = 10000; // 10 segundos
 
 // URL base de la API - Determina automáticamente basado en el entorno
-export const API_BASE_URL = process.env.NODE_ENV === 'production' 
+let apiBaseUrl = process.env.NODE_ENV === 'production' 
   ? process.env.REACT_APP_PROD_API_URL || DEFAULT_PROD_API_URL
   : process.env.REACT_APP_DEV_API_URL || DEFAULT_DEV_API_URL;
 
+// Asegurar que en producción siempre usemos HTTPS
+if (process.env.NODE_ENV === 'production' && apiBaseUrl.startsWith('http:')) {
+  apiBaseUrl = apiBaseUrl.replace('http:', 'https:');
+}
+
+export const API_BASE_URL = apiBaseUrl;
+
 // URL de respaldo para intentar si la principal falla
-export const API_BACKUP_URL = process.env.REACT_APP_BACKUP_API_URL || BACKUP_API_URL;
+let backupUrl = process.env.REACT_APP_BACKUP_API_URL || BACKUP_API_URL;
+
+// Asegurar que la URL de respaldo también use HTTPS en producción
+if (process.env.NODE_ENV === 'production' && backupUrl.startsWith('http:')) {
+  backupUrl = backupUrl.replace('http:', 'https:');
+}
+
+export const API_BACKUP_URL = backupUrl;
 
 export const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 export const WS_BASE_URL = `${WS_PROTOCOL}//${API_BASE_URL.replace(/^https?:\/\//, '')}`;
