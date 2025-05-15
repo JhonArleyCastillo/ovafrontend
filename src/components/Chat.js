@@ -11,8 +11,51 @@ import ChatInput from './Chat/ChatInput';
 import { COMPONENT_NAMES } from '../config/constants';
 import { processIncomingMessage, handleMessageActions, createTextMessage, createImageMessage, createAudioMessage, createTypingMessage } from '../utils/message-utils';
 import { playAudio, optimizeImage } from '../utils/media-utils';
+import { useNavigate } from 'react-router-dom';
 
 const COMPONENT_NAME = COMPONENT_NAMES.CHAT;
+
+// Componentes de aviso de privacidad y términos de uso
+const PrivacyTermsModal = ({ onAccept, onDecline }) => (
+  <div className="modal fade show" tabIndex="-1" style={{ display: 'block', background: 'rgba(0,0,0,0.5)' }}>
+    <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h4 className="modal-title">Aviso de Privacidad y Términos de Uso</h4>
+        </div>
+        <div className="modal-body">
+          <h5>Aviso de Privacidad</h5>
+          <p>
+            Este asistente virtual puede procesar información que proporciones durante la conversación 
+            para mejorar la experiencia y responder a tus consultas.
+          </p>
+          <ul>
+            <li>No almacenamos datos personales sin tu consentimiento.</li>
+            <li>No compartimos tu información con terceros.</li>
+            <li>Puedes solicitar la eliminación de tus datos en cualquier momento.</li>
+            <li>Utilizamos conexiones seguras (HTTPS) para proteger tus datos.</li>
+          </ul>
+          
+          <h5 className="mt-4">Términos de Uso</h5>
+          <ul>
+            <li>El asistente es una herramienta automatizada y sus respuestas son orientativas.</li>
+            <li>No debe considerarse asesoramiento profesional (médico, legal, financiero, etc.).</li>
+            <li>Está prohibido el uso del asistente para actividades ilegales o no autorizadas.</li>
+            <li>Nos reservamos el derecho de modificar estos términos en cualquier momento.</li>
+          </ul>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-primary" onClick={onAccept}>
+            Acepto
+          </button>
+          <button className="btn btn-secondary" onClick={onDecline}>
+            No acepto
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const Chat = ({ onImageResult }) => {
   // Estado
@@ -22,10 +65,30 @@ const Chat = ({ onImageResult }) => {
   const [connectionError, setConnectionError] = useState(null);
   const [clientId, setClientId] = useState(null);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
-
+  const [showPrivacyModal, setShowPrivacyModal] = useState(true);
+  
   // Referencias
   const ws = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const navigate = useNavigate();
+
+  // Comprobar si ya se ha aceptado la política de privacidad
+  useEffect(() => {
+    if (localStorage.getItem('chat_privacy_accepted') === 'true') {
+      setShowPrivacyModal(false);
+    }
+  }, []);
+
+  // Manejadores para el modal de privacidad
+  const handleAcceptPrivacy = () => {
+    localStorage.setItem('chat_privacy_accepted', 'true');
+    setShowPrivacyModal(false);
+  };
+
+  const handleDeclinePrivacy = () => {
+    setShowPrivacyModal(false);
+    navigate('/');
+  };
 
   /**
    * Añade un mensaje al historial de chat
@@ -512,36 +575,47 @@ const Chat = ({ onImageResult }) => {
 
   return (
     <div className="d-flex flex-column h-100">
-      <div className="p-3 bg-light border-bottom">
-        <ChatHeader 
-          isConnected={isConnected} 
-          autoPlayAudio={autoPlayAudio}
-          onToggleAutoPlayAudio={toggleAutoPlayAudio}
+      {showPrivacyModal && (
+        <PrivacyTermsModal 
+          onAccept={handleAcceptPrivacy} 
+          onDecline={handleDeclinePrivacy} 
         />
-      </div>
-      
-      {connectionError && (
-        <div className="px-3 pt-3">
-          <ErrorMessage message={connectionError} onDismiss={clearError} />
-        </div>
       )}
       
-      <div className="flex-grow-1 overflow-auto p-3">
-        <MessageList 
-          messages={messages}
-          isTyping={isTyping}
-          autoPlayAudio={autoPlayAudio}
-        />
-      </div>
-      
-      <ChatInput 
-        onSendMessage={handleSendMessage}
-        onImageUpload={handleImageUpload}
-        onSignLanguageUpload={handleSignLanguageUpload}
-        onAudioRecord={handleAudioRecord}
-        isConnected={isConnected}
-        isTyping={isTyping}
-      />
+      {!showPrivacyModal && (
+        <>
+          <div className="p-3 bg-light border-bottom">
+            <ChatHeader 
+              isConnected={isConnected} 
+              autoPlayAudio={autoPlayAudio}
+              onToggleAutoPlayAudio={toggleAutoPlayAudio}
+            />
+          </div>
+          
+          {connectionError && (
+            <div className="px-3 pt-3">
+              <ErrorMessage message={connectionError} onDismiss={clearError} />
+            </div>
+          )}
+          
+          <div className="flex-grow-1 overflow-auto p-3">
+            <MessageList 
+              messages={messages}
+              isTyping={isTyping}
+              autoPlayAudio={autoPlayAudio}
+            />
+          </div>
+          
+          <ChatInput 
+            onSendMessage={handleSendMessage}
+            onImageUpload={handleImageUpload}
+            onSignLanguageUpload={handleSignLanguageUpload}
+            onAudioRecord={handleAudioRecord}
+            isConnected={isConnected}
+            isTyping={isTyping}
+          />
+        </>
+      )}
     </div>
   );
 };

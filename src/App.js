@@ -316,9 +316,9 @@ function App() {
         
         {/* Rutas públicas con sidebar */}
         <Route path="*" element={
-          <div className="d-flex vh-100 overflow-hidden">
+          <div className="d-flex flex-column flex-lg-row min-vh-100">
             <Sidebar />
-            <main className="flex-grow-1 overflow-auto">
+            <main className="flex-grow-1 px-3">
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/about" element={<AboutPage />} />
