@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Logger from '../utils/debug-utils';
 
+// Solo renderiza en desarrollo, no en producción
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 // Estilos inline para el monitor
 const styles = {
   container: {
@@ -84,13 +87,15 @@ const styles = {
 };
 
 /**
- * Monitor de depuración para mostrar en la interfaz
- * @param {Object} props - Propiedades del componente
- * @param {boolean} props.isVisible - Si el monitor debe ser visible
- * @param {Object} props.states - Estados de la aplicación para mostrar
- * @param {string} props.title - Título del monitor
+ * DebugMonitor - Componente para depuración que muestra estados y eventos en tiempo real
+ * Solo aparece en entorno de desarrollo
  */
 const DebugMonitor = ({ isVisible = false, states = {}, title = 'Debug Monitor' }) => {
+  // Si no estamos en desarrollo, devolvemos null (no renderizar nada)
+  if (!isDevelopment) {
+    return null;
+  }
+
   const [visible, setVisible] = useState(isVisible);
   const [logs, setLogs] = useState([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -167,10 +172,6 @@ const DebugMonitor = ({ isVisible = false, states = {}, title = 'Debug Monitor' 
   }, [maxLogs]);
 
   // Renderizado condicional basado en visible, no afecta a los hooks
-  if (process.env.NODE_ENV === 'production') {
-    return null;
-  }
-
   if (!visible) {
     return (
       <button 
@@ -260,4 +261,4 @@ const DebugMonitor = ({ isVisible = false, states = {}, title = 'Debug Monitor' 
   );
 };
 
-export default DebugMonitor; 
+export default DebugMonitor;

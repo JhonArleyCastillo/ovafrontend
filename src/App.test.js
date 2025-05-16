@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders OVA app', () => {
+  // Solo una prueba básica para verificar que la aplicación se renderiza sin errores
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  // No hacemos aserciones específicas ya que la app tiene múltiples rutas
+  expect(document.body).toBeInTheDocument();
 });

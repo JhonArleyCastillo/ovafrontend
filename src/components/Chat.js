@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../utils/debug-utils';
-import ApiService from '../api';
+import ApiService from '../services/api';
 import { API_ROUTES, WS_ROUTES } from '../config/api.routes';
 import { formatImageAnalysisResult } from '../services/chatUtils';
 import { ErrorMessage } from './common';

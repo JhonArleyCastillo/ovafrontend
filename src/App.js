@@ -2,10 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
-import ovalogo from './ovalogo.png'; // Importar el logo de OVA
+import { ovalogo } from './images'; // Importar el logo de OVA desde el índice de imágenes
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import PrivateRoute from './components/admin/PrivateRoute';
+import AboutUsSection from './components/AboutUsSection';
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -106,10 +107,7 @@ const HomePage = () => (
 );
 
 const AboutPage = () => (
-  <div className="container p-4">
-    <h1>Sobre Nosotros</h1>
-    <p>Somos un proyecto innovador que combina tecnologías de procesamiento de lenguaje natural, reconocimiento de voz y análisis de imágenes para crear un asistente virtual completo.</p>
-  </div>
+  <AboutUsSection />
 );
 
 const ServicesPage = () => (
