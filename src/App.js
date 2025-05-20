@@ -7,6 +7,7 @@ import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import PrivateRoute from './components/admin/PrivateRoute';
 import AboutUsSection from './components/AboutUsSection';
+import ServicesSection from './components/ServicesSection';
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -111,15 +112,7 @@ const AboutPage = () => (
 );
 
 const ServicesPage = () => (
-  <div className="container p-4">
-    <h1>Nuestros Servicios</h1>
-    <ul className="list-group">
-      <li className="list-group-item">Asistente Virtual de Voz</li>
-      <li className="list-group-item">Chat Inteligente</li>
-      <li className="list-group-item">Análisis de Imágenes</li>
-      <li className="list-group-item">Reconocimiento de Lenguaje de Señas</li>
-    </ul>
-  </div>
+  <ServicesSection />
 );
 
 const ContactPage = () => {
