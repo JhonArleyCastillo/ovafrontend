@@ -60,8 +60,8 @@ export const REST_ROUTES = {
   USUARIO_BY_ID: (id) => `${API_BASE_URL}/api/usuarios/${id}`,
   
   // Contactos
-  CONTACTOS: `${API_BASE_URL}/api/contacto`,
-  CONTACTO_BY_ID: (id) => `${API_BASE_URL}/api/contacto/${id}`,
+  CONTACTOS: `${API_BASE_URL}/api/contactos`,
+  CONTACTO_BY_ID: (id) => `${API_BASE_URL}/api/contactos/${id}`,
 };
 
 // Exportar todas las rutas juntas para facilitar importación

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
@@ -8,6 +8,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import PrivateRoute from './components/admin/PrivateRoute';
 import AboutUsSection from './components/AboutUsSection';
 import ServicesSection from './components/ServicesSection';
+import DatabaseService from './services/database.service';
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -117,11 +118,17 @@ const ServicesPage = () => (
 
 const ContactPage = () => {
   const [formData, setFormData] = React.useState({
+    nombre: '',
+    apellido: '',
+    asunto: '',
     message: '',
     contactInfo: ''
   });
   const [submitted, setSubmitted] = React.useState(false);
   const [errors, setErrors] = React.useState({
+    nombre: '',
+    apellido: '',
+    asunto: '',
     message: '',
     contactInfo: ''
   });
@@ -144,7 +151,10 @@ const ContactPage = () => {
       [name]: ''
     }));
 
-    // Validar email mientras se escribe solo si ya tiene contenido
+    // Validaciones en vivo
+    if (['nombre','apellido','asunto','message'].includes(name) && value.trim() === '') {
+      setErrors(prev => ({ ...prev, [name]: `El campo ${name} no puede estar vacío` }));
+    }
     if (name === 'contactInfo' && value.trim() !== '' && !validateEmail(value)) {
       setErrors(prevState => ({
         ...prevState,
@@ -155,23 +165,23 @@ const ContactPage = () => {
 
   const validateForm = () => {
     let valid = true;
-    const newErrors = { message: '', contactInfo: '' };
+    const newErrors = { nombre:'', apellido:'', asunto:'', message:'', contactInfo:'' };
     
-    // Validar mensaje
-    if (!formData.message.trim()) {
-      newErrors.message = 'Por favor ingresa tu mensaje';
-      valid = false;
-    } else if (formData.message.trim().length < 10) {
+    // Validar campos vacíos
+    ['nombre','apellido','asunto','message','contactInfo'].forEach(field => {
+      if (!formData[field]?.trim()) {
+        newErrors[field] = `Por favor ingresa ${field}`;
+        valid = false;
+      }
+    });
+    // Largo mínimo del mensaje
+    if (formData.message.trim().length < 10) {
       newErrors.message = 'Tu mensaje es muy corto, por favor sé más específico';
       valid = false;
     }
-    
-    // Validar información de contacto (asumiendo que es un email)
-    if (!formData.contactInfo.trim()) {
-      newErrors.contactInfo = 'Por favor ingresa tu correo electrónico';
-      valid = false;
-    } else if (!validateEmail(formData.contactInfo)) {
-      newErrors.contactInfo = 'Por favor ingresa un correo electrónico válido (ejemplo: usuario@dominio.com)';
+    // Validar email
+    if (formData.contactInfo && !validateEmail(formData.contactInfo)) {
+      newErrors.contactInfo = 'Por favor ingresa un correo electrónico válido';
       valid = false;
     }
     
@@ -183,11 +193,24 @@ const ContactPage = () => {
     e.preventDefault();
     
     if (validateForm()) {
-      console.log('Formulario enviado:', formData);
-      // Aquí iría la lógica para enviar los datos a un servidor
-      setSubmitted(true);
-      setFormData({ message: '', contactInfo: '' });
-      setErrors({ message: '', contactInfo: '' });
+      // Enviar datos al backend
+      DatabaseService.sendContacto({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        asunto: formData.asunto,
+        mensaje: formData.message,
+        email: formData.contactInfo
+      })
+      .then(() => {
+        setSubmitted(true);
+        setFormData({ nombre:'', apellido:'', asunto:'', message:'', contactInfo:'' });
+        setErrors({ nombre:'', apellido:'', asunto:'', message:'', contactInfo:'' });
+      })
+      .catch(err => {
+        console.error(err);
+        // Mostrar error general
+        alert(err.message || 'Error al enviar el mensaje');
+      });
     }
   };
 
@@ -214,6 +237,63 @@ const ContactPage = () => {
                 <p className="lead mb-4">Completa el formulario a continuación para enviarnos tu consulta o solicitud. Nos pondremos en contacto contigo lo antes posible.</p>
                 
                 <form onSubmit={handleSubmit} noValidate>
+                  <div className="mb-4">
+                    <label htmlFor="nombre" className="form-label">Nombre:</label>
+                    <input 
+                      type="text" 
+                      className={`form-control ${errors.nombre ? 'is-invalid' : ''}`}
+                      id="nombre" 
+                      name="nombre" 
+                      value={formData.nombre}
+                      onChange={handleChange}
+                      placeholder="Tu nombre"
+                      required
+                    />
+                    {errors.nombre && (
+                      <div className="invalid-feedback">
+                        {errors.nombre}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="apellido" className="form-label">Apellido:</label>
+                    <input 
+                      type="text" 
+                      className={`form-control ${errors.apellido ? 'is-invalid' : ''}`}
+                      id="apellido" 
+                      name="apellido" 
+                      value={formData.apellido}
+                      onChange={handleChange}
+                      placeholder="Tu apellido"
+                      required
+                    />
+                    {errors.apellido && (
+                      <div className="invalid-feedback">
+                        {errors.apellido}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-4">
+                    <label htmlFor="asunto" className="form-label">Asunto:</label>
+                    <input 
+                      type="text" 
+                      className={`form-control ${errors.asunto ? 'is-invalid' : ''}`}
+                      id="asunto" 
+                      name="asunto" 
+                      value={formData.asunto}
+                      onChange={handleChange}
+                      placeholder="Asunto de tu mensaje"
+                      required
+                    />
+                    {errors.asunto && (
+                      <div className="invalid-feedback">
+                        {errors.asunto}
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="mb-4">
                     <label htmlFor="message" className="form-label">Tu solicitud o consulta:</label>
                     <textarea 
