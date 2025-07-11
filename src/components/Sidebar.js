@@ -1,123 +1,184 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import useDayNightTheme from '../hooks/useDayNightTheme';
 
-const SidebarLinks = ({ onLinkClick, location, centered }) => (
-  <ul className={`nav nav-pills flex-column mb-auto${centered ? ' align-items-center' : ''}`}>
-    <li className="nav-item">
-      <Link
-        to="/"
-        className={`nav-link text-white ${location.pathname === '/' ? 'active' : ''}`}
-        onClick={onLinkClick}
+// Componente para el selector de tema
+const ThemeSelector = () => {
+  const { theme, setTheme, isAutoMode, getThemeInfo } = useDayNightTheme();
+  const [showSelector, setShowSelector] = useState(false);
+  
+  const themeInfo = getThemeInfo();
+  
+  const themeOptions = [
+    { value: 'auto', label: '🌓 Automático', description: 'Día/Noche automático' },
+    { value: 'light', label: '☀️ Claro', description: 'Tema día' },
+    { value: 'dark', label: '🌙 Oscuro', description: 'Tema noche' }
+  ];
+  
+  return (
+    <div className="theme-selector">
+      <button 
+        className="theme-toggle-btn nav-link"
+        onClick={() => setShowSelector(!showSelector)}
+        title={`Tema actual: ${themeInfo.isAutoMode ? 'Automático' : theme}`}
       >
-        <i className="bi bi-house-door me-2"></i>
-        Inicio
-      </Link>
-    </li>
-    <li>
-      <Link
-        to="/chat"
-        className={`nav-link text-white ${location.pathname === '/chat' ? 'active' : ''}`}
-        onClick={onLinkClick}
-      >
-        <i className="bi bi-chat-text me-2"></i>
-        Chat
-      </Link>
-    </li>
-    <li>
-      <Link
-        to="/about"
-        className={`nav-link text-white ${location.pathname === '/about' ? 'active' : ''}`}
-        onClick={onLinkClick}
-      >
-        <i className="bi bi-info-circle me-2"></i>
-        Sobre Nosotros
-      </Link>
-    </li>
-    <li>
-      <Link
-        to="/services"
-        className={`nav-link text-white ${location.pathname === '/services' ? 'active' : ''}`}
-        onClick={onLinkClick}
-      >
-        <i className="bi bi-gear me-2"></i>
-        Servicios
-      </Link>
-    </li>
-    <li>
-      <Link
-        to="/contact"
-        className={`nav-link text-white ${location.pathname === '/contact' ? 'active' : ''}`}
-        onClick={onLinkClick}
-      >
-        <i className="bi bi-envelope me-2"></i>
-        Contacto
-      </Link>
-    </li>
-  </ul>
-);
+        <div className="nav-link-content">
+          <i className="bi bi-palette nav-icon"></i>
+          <span className="nav-text">Tema</span>
+          <i className={`bi bi-chevron-${showSelector ? 'up' : 'down'} ms-auto`}></i>
+        </div>
+      </button>
+      
+      {showSelector && (
+        <div className="theme-dropdown">
+          {themeOptions.map((option) => (
+            <button
+              key={option.value}
+              className={`theme-option ${(option.value === 'auto' && isAutoMode) || (option.value === theme && !isAutoMode) ? 'active' : ''}`}
+              onClick={() => {
+                setTheme(option.value);
+                setShowSelector(false);
+              }}
+            >
+              <span className="theme-label">{option.label}</span>
+              <small className="theme-description">{option.description}</small>
+            </button>
+          ))}
+          
+          {isAutoMode && (
+            <div className="current-auto-info">
+              <small>
+                🕐 {themeInfo.currentTime} - {themeInfo.isDay ? 'Día' : 'Noche'}
+              </small>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SidebarLinks = ({ onLinkClick, location, isMobile }) => {
+  const menuItems = [
+    { path: '/', icon: 'bi-house-door', label: 'Inicio' },
+    { path: '/chat', icon: 'bi-chat-text', label: 'Chat' },
+    { path: '/about', icon: 'bi-info-circle', label: 'Sobre Nosotros' },
+    { path: '/services', icon: 'bi-gear', label: 'Servicios' },
+    { path: '/contact', icon: 'bi-envelope', label: 'Contacto' }
+  ];
+
+  return (
+    <nav className="sidebar-nav">
+      <ul className="nav-list">
+        {menuItems.map((item) => (
+          <li key={item.path} className="nav-item">
+            <Link
+              to={item.path}
+              className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={onLinkClick}
+            >
+              <div className="nav-link-content">
+                <i className={`bi ${item.icon} nav-icon`}></i>
+                <span className="nav-text">{item.label}</span>
+              </div>
+            </Link>
+          </li>
+        ))}
+        
+        {/* Separador */}
+        <li className="nav-separator"></li>
+        
+        {/* Selector de tema */}
+        <li className="nav-item">
+          <ThemeSelector />
+        </li>
+      </ul>
+    </nav>
+  );
+};
 
 const Sidebar = () => {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Cerrar menú al cambiar de ruta
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
+
+  // Manejar el estado del menú
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
+
+  // Efecto para body cuando el menú está abierto
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('menu-open');
+    } else {
+      document.body.classList.remove('menu-open');
+    }
+
+    // Cleanup al desmontar
+    return () => {
+      document.body.classList.remove('menu-open');
+    };
+  }, [isOpen]);
+
   return (
     <>
-      {/* Botón hamburguesa para pantallas pequeñas */}
+      {/* Botón hamburguesa mejorado */}
       <button
-        className="btn btn-dark d-lg-none top-0 start-50 m-3"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#sidebarOffcanvas"
-        aria-controls="sidebarOffcanvas"
-        aria-label="Abrir menú"
-        style={{ zIndex: 1051 }}
+        className={`hamburger-button ${isOpen ? 'active' : ''}`}
+        onClick={toggleMenu}
+        aria-label="Toggle navigation menu"
+        aria-expanded={isOpen}
       >
-        <i className="bi bi-list fs-1"></i>
+        <div className="hamburger-box">
+          <div className="hamburger-inner"></div>
+        </div>
       </button>
 
-      {/* Sidebar fijo para escritorio */}
-      <div
-        className="d-none d-lg-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-        style={{ width: '280px', height: '100vh', position: 'sticky', top: 0 }}
-      >
-        <div className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
-          <i className="bi bi-chat-dots-fill fs-4 me-2"></i>
-          <span className="fs-4">OVA</span>
+      {/* Overlay para cerrar el menú en móvil */}
+      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)}></div>}
+
+      {/* Sidebar Desktop */}
+      <div className="sidebar sidebar-desktop">
+        <div className="sidebar-header">
+          <Link to="/" className="brand-link">
+            <i className="bi bi-chat-dots-fill brand-icon"></i>
+            <span className="brand-text">OVA</span>
+          </Link>
         </div>
-        <hr className="border-light" />
-        <SidebarLinks location={location} />
-        <hr className="border-light" />
+        
+        <div className="sidebar-content">
+          <SidebarLinks location={location} onLinkClick={handleLinkClick} />
+        </div>
       </div>
 
-      {/* Sidebar Offcanvas Bootstrap para móvil, centrado verticalmente */}
-      <div
-        className="offcanvas offcanvas-start bg-dark text-white d-lg-none justify-content-center"
-        tabIndex="-1"
-        id="sidebarOffcanvas"
-        aria-labelledby="sidebarOffcanvasLabel"
-        style={{ width: '280px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
-      >
-        <div className="offcanvas-header justify-content-center">
-          <Link to="/" className="d-flex align-items-center text-white text-decoration-none">
-            <i className="bi bi-chat-dots-fill fs-4 me-2"></i>
-            <span className="fs-4">OVA</span>
+      {/* Sidebar Mobile */}
+      <div className={`sidebar sidebar-mobile ${isOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <Link to="/" className="brand-link" onClick={handleLinkClick}>
+            <i className="bi bi-chat-dots-fill brand-icon"></i>
+            <span className="brand-text">OVA</span>
           </Link>
-          <button
-            type="button"
-            className="btn-close btn-close-white ms-2"
-            data-bs-dismiss="offcanvas"
-            aria-label="Cerrar"
-          ></button>
+          <button 
+            className="close-button" 
+            onClick={() => setIsOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <i className="bi bi-x-lg"></i>
+          </button>
         </div>
-        <hr className="border-light" />
-        <div className="offcanvas-body p-0 d-flex flex-column justify-content-center align-items-center">
-          <SidebarLinks location={location} centered onLinkClick={e => {
-            // Cierra el offcanvas al hacer click en un link
-            if (window.bootstrap) {
-              const offcanvas = window.bootstrap.Offcanvas.getOrCreateInstance(document.getElementById('sidebarOffcanvas'));
-              offcanvas.hide();
-            }
-          }} />
+        
+        <div className="sidebar-content">
+          <SidebarLinks location={location} onLinkClick={handleLinkClick} isMobile />
         </div>
-        <hr className="border-light" />
       </div>
     </>
   );

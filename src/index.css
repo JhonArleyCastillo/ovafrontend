@@ -1,3 +1,141 @@
+/* Variables CSS para temas día/noche */
+:root {
+  /* Tema claro (día) */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border-color: #dee2e6;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+  
+  /* Variables del sidebar (mantener para compatibilidad) */
+  --sidebar-width: 280px;
+  --sidebar-bg: #0d1117;
+  --sidebar-border: #21262d;
+  --sidebar-text: #f0f6fc;
+  --sidebar-text-muted: #7d8590;
+  --sidebar-hover: #21262d;
+  --sidebar-active: #1f6feb;
+  --sidebar-active-bg: rgba(31, 111, 235, 0.15);
+  --hamburger-size: 20px;
+  --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Tema oscuro (noche) */
+.dark-theme {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-tertiary: #21262d;
+  --text-primary: #f0f6fc;
+  --text-secondary: #c9d1d9;
+  --text-muted: #8b949e;
+  --border-color: #30363d;
+  --shadow: rgba(0, 0, 0, 0.3);
+  --shadow-lg: rgba(0, 0, 0, 0.4);
+}
+
+/* Tema claro (día) - explícito */
+.light-theme {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #adb5bd;
+  --border-color: #dee2e6;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-lg: rgba(0, 0, 0, 0.15);
+}
+
+/* Aplicar tema al body y elementos principales */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Estilos para cards y contenedores */
+.card {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.card-body {
+  color: var(--text-primary) !important;
+}
+
+/* Estilos para formularios */
+.form-control {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.form-control:focus {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--sidebar-active) !important;
+  color: var(--text-primary) !important;
+  box-shadow: 0 0 0 0.2rem rgba(31, 111, 235, 0.25) !important;
+}
+
+/* Estilos para botones */
+.btn-primary {
+  background-color: var(--sidebar-active) !important;
+  border-color: var(--sidebar-active) !important;
+}
+
+.btn-outline-primary {
+  color: var(--sidebar-active) !important;
+  border-color: var(--sidebar-active) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--sidebar-active) !important;
+  border-color: var(--sidebar-active) !important;
+}
+
+/* Ajustes específicos para el sidebar en tema oscuro */
+.dark-theme .sidebar {
+  background: var(--sidebar-bg);
+  border-right-color: var(--sidebar-border);
+}
+
+.light-theme .sidebar {
+  background: var(--bg-secondary);
+  border-right-color: var(--border-color);
+}
+
+.light-theme .sidebar-header,
+.light-theme .nav-link,
+.light-theme .brand-link {
+  color: var(--text-primary) !important;
+}
+
+.light-theme .nav-link:hover {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+.light-theme .nav-link.active {
+  background: rgba(31, 111, 235, 0.1) !important;
+  color: var(--sidebar-active) !important;
+}
+
+.light-theme .hamburger-button {
+  background: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.light-theme .hamburger-inner,
+.light-theme .hamburger-inner::before,
+.light-theme .hamburger-inner::after {
+  background: var(--text-primary) !important;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -12,42 +150,597 @@ code {
     monospace;
 }
 
-/* Estilos para el sidebar responsive */
-.sidebar {
-  z-index: 1000;
+/* Estilos modernos para el sidebar inspirados en GitHub */
+
+/* Variables CSS para el sidebar - ahora adaptables al tema */
+:root {
+  /* ... variables de tema existentes ... */
+  
+  /* Sidebar - tema oscuro por defecto */
+  --sidebar-width: 280px;
+  --sidebar-bg: #0d1117;
+  --sidebar-border: #21262d;
+  --sidebar-text: #f0f6fc;
+  --sidebar-text-muted: #7d8590;
+  --sidebar-hover: #21262d;
+  --sidebar-active: #1f6feb;
+  --sidebar-active-bg: rgba(31, 111, 235, 0.15);
+  --hamburger-size: 20px;
+  --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* En dispositivos pequeños */
-@media (max-width: 991.98px) {
-  .sidebar {
-    position: fixed !important;
-    left: -280px;
-    top: 0;
-    bottom: 0;
-    z-index: 1030;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-  }
+/* Sidebar - tema claro */
+.light-theme {
+  /* ... variables de tema existentes ... */
   
-  .sidebar.show {
-    left: 0;
-    transform: translateX(0) !important;
-  }
-  
-  .z-index-1000 {
-    z-index: 1000;
-  }
+  /* Sidebar adaptado para tema claro */
+  --sidebar-bg: var(--bg-secondary);
+  --sidebar-border: var(--border-color);
+  --sidebar-text: var(--text-primary);
+  --sidebar-text-muted: var(--text-secondary);
+  --sidebar-hover: var(--bg-tertiary);
+  --sidebar-active: #1f6feb;
+  --sidebar-active-bg: rgba(31, 111, 235, 0.1);
+}
 
-  /* Ajuste para el contenido principal cuando el menú está abierto */
+/* Botón hamburguesa moderno */
+.hamburger-button {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1100;
+  display: none;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 8px;
+  padding: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* Ocultar el botón hamburguesa cuando el menú está abierto */
+.hamburger-button.active {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+.hamburger-button:hover {
+  background: var(--sidebar-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.hamburger-box {
+  width: var(--hamburger-size);
+  height: var(--hamburger-size);
+  position: relative;
+}
+
+.hamburger-inner {
+  width: 100%;
+  height: 2px;
+  background: var(--sidebar-text);
+  border-radius: 4px;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: var(--transition);
+}
+
+.hamburger-inner::before,
+.hamburger-inner::after {
+  content: '';
+  width: 100%;
+  height: 2px;
+  background: var(--sidebar-text);
+  border-radius: 4px;
+  position: absolute;
+  transition: var(--transition);
+}
+
+.hamburger-inner::before {
+  top: -6px;
+}
+
+.hamburger-inner::after {
+  top: 6px;
+}
+
+/* Animación del botón hamburguesa - solo mostrar/ocultar */
+.hamburger-button:hover {
+  background: var(--sidebar-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+/* Cuando está activo, simplemente se oculta */
+.hamburger-button.active {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.8);
+}
+
+/* Overlay para móvil */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sidebar base */
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1050;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Sidebar Desktop */
+.sidebar-desktop {
+  position: sticky;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Sidebar Mobile */
+.sidebar-mobile {
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.sidebar-mobile.open {
+  transform: translateX(0);
+}
+
+/* Header del sidebar */
+.sidebar-header {
+  padding: 1.5rem 1rem;
+  border-bottom: 1px solid var(--sidebar-border);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--sidebar-text);
+  transition: var(--transition);
+  flex: 1;
+}
+
+.brand-link:hover {
+  color: var(--sidebar-text);
+  text-decoration: none;
+}
+
+.brand-icon {
+  font-size: 1.5rem;
+  margin-right: 0.75rem;
+  color: var(--sidebar-active);
+}
+
+.brand-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+/* Botón de cerrar para móvil */
+.close-button {
+  background: none;
+  border: none;
+  color: var(--sidebar-text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: 1rem;
+}
+
+.close-button:hover {
+  color: var(--sidebar-text);
+  background: var(--sidebar-hover);
+}
+
+.close-button:focus-visible {
+  outline: 2px solid var(--sidebar-active);
+  outline-offset: 2px;
+}
+
+/* Solo mostrar el botón de cerrar en móvil */
+.sidebar-desktop .close-button {
+  display: none;
+}
+
+/* Contenido del sidebar */
+.sidebar-content {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+/* Navegación */
+.sidebar-nav {
+  height: 100%;
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  margin: 0.25rem 0;
+}
+
+.nav-link {
+  display: block;
+  text-decoration: none;
+  color: var(--sidebar-text-muted);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  margin: 0 0.75rem;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link:hover {
+  color: var(--sidebar-text);
+  background: var(--sidebar-hover);
+  text-decoration: none;
+  transform: translateX(2px);
+}
+
+.nav-link.active {
+  color: var(--sidebar-text);
+  background: var(--sidebar-active-bg);
+  border-left: 3px solid var(--sidebar-active);
+  padding-left: calc(1rem - 3px);
+}
+
+.nav-link-content {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+  margin-right: 0.75rem;
+  width: 1.25rem;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.nav-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+/* Efecto de ondas al hacer click */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.nav-link:active::after {
+  width: 200px;
+  height: 200px;
+}
+
+/* Estilos para el contenido principal */
+.main-content {
+  transition: var(--transition);
+  min-height: 100vh;
+}
+
+/* Ajustes para desktop con sidebar fijo */
+@media (min-width: 992px) {
+  .d-flex.flex-column.flex-lg-row.min-vh-100 {
+    display: flex !important;
+  }
+  
+  .d-flex.flex-column.flex-lg-row.min-vh-100 > main {
+    margin-left: 0;
+    width: calc(100% - var(--sidebar-width));
+    min-height: 100vh;
+  }
+}
+
+/* Para móvil, el contenido ocupa todo el ancho */
+@media (max-width: 991.98px) {
+  .d-flex.flex-column.flex-lg-row.min-vh-100 > main {
+    width: 100%;
+    padding-top: 4rem; /* Espacio para el botón hamburguesa */
+  }
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .hamburger-button {
+    display: block;
+  }
+  
+  .sidebar-desktop {
+    display: none;
+  }
+  
+  .sidebar-mobile {
+    display: flex;
+    /* Asegurar que el sidebar móvil tenga la altura correcta */
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  /* Prevenir scroll del body cuando el menú está abierto */
   body.menu-open {
     overflow: hidden;
   }
 }
 
-/* Siempre visible en pantallas grandes */
 @media (min-width: 992px) {
-  .sidebar {
+  .hamburger-button {
+    display: none;
+  }
+  
+  .sidebar-desktop {
+    display: flex;
     position: sticky;
-    left: 0;
-    transform: none !important;
+  }
+  
+  .sidebar-mobile {
+    display: none;
+  }
+  
+  .sidebar-overlay {
+    display: none;
+  }
+}
+
+/* Mejoras adicionales para accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar-mobile,
+  .hamburger-inner,
+  .hamburger-inner::before,
+  .hamburger-inner::after,
+  .nav-link,
+  .sidebar-overlay {
+    transition: none;
+  }
+}
+
+/* Focus visible para navegación por teclado */
+.nav-link:focus-visible,
+.hamburger-button:focus-visible,
+.brand-link:focus-visible {
+  outline: 2px solid var(--sidebar-active);
+  outline-offset: 2px;
+}
+
+/* Scrollbar personalizado */
+.sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border);
+  border-radius: 3px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-text-muted);
+}
+
+/* Mejoras específicas para el sidebar móvil */
+@media (max-width: 991.98px) {
+  .sidebar-mobile {
+    /* Asegurar que el sidebar móvil tenga la altura correcta */
+    height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .sidebar-mobile .sidebar-header {
+    /* Asegurar que el header no se mueva */
+    position: sticky;
+    top: 0;
+    background: var(--sidebar-bg);
+    z-index: 10;
+  }
+  
+  .sidebar-mobile .sidebar-content {
+    /* Mejor distribución del contenido */
+    padding: 2rem 0 1rem 0;
+    flex: 1;
+  }
+  
+  .sidebar-mobile .nav-link {
+    /* Más espaciado en móvil para mejor touch */
+    padding: 0.75rem 1rem;
+    margin: 0.125rem 0.75rem;
+    font-size: 1rem;
+  }
+  
+  .sidebar-mobile .nav-icon {
+    font-size: 1.25rem;
+    margin-right: 1rem;
+  }
+}
+
+/* Animación de entrada más suave */
+.sidebar-mobile.open {
+  animation: slideInLeft 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Estilos para el selector de tema */
+.nav-separator {
+  height: 1px;
+  background: var(--sidebar-border);
+  margin: 0.75rem 1rem;
+  opacity: 0.5;
+}
+
+.theme-selector {
+  position: relative;
+}
+
+.theme-toggle-btn {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.theme-dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0.75rem;
+  right: 0.75rem;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--sidebar-border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 12px var(--shadow-lg);
+  z-index: 1000;
+  margin-bottom: 0.5rem;
+}
+
+.theme-option {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--sidebar-text-muted);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  margin-bottom: 0.25rem;
+}
+
+.theme-option:hover {
+  background: var(--sidebar-hover);
+  color: var(--sidebar-text);
+}
+
+.theme-option.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-text);
+  border-left: 3px solid var(--sidebar-active);
+  padding-left: calc(0.75rem - 3px);
+}
+
+.theme-option:last-child {
+  margin-bottom: 0;
+}
+
+.theme-label {
+  display: block;
+  font-weight: 500;
+}
+
+.theme-description {
+  display: block;
+  color: var(--sidebar-text-muted);
+  font-size: 0.8rem;
+  margin-top: 0.125rem;
+}
+
+.current-auto-info {
+  border-top: 1px solid var(--sidebar-border);
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+  text-align: center;
+  color: var(--sidebar-text-muted);
+}
+
+/* Animación para el dropdown */
+.theme-dropdown {
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive para el selector de tema */
+@media (max-width: 991.98px) {
+  .theme-dropdown {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    width: 280px;
+    max-width: calc(100vw - 2rem);
   }
 }

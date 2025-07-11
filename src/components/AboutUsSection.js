@@ -70,7 +70,7 @@ const AboutUsSection = () => (
           <div className="row">
             <div className="col-md-3 text-center mb-3 mb-md-0">
               <img 
-                src={image2} 
+                src={image2}
                 alt="Valores OVA" 
                 className="img-fluid rounded-circle shadow-sm" 
                 style={{ width: '120px', height: '120px', objectFit: 'cover' }} 

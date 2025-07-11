@@ -9,6 +9,31 @@ import PrivateRoute from './components/admin/PrivateRoute';
 import AboutUsSection from './components/AboutUsSection';
 import ServicesSection from './components/ServicesSection';
 import DatabaseService from './services/database.service';
+import useDayNightTheme from './hooks/useDayNightTheme';
+
+// Componente para mostrar información del tema (opcional, para debug)
+const ThemeInfo = ({ themeInfo }) => {
+  if (process.env.NODE_ENV !== 'development') return null;
+  
+  return (
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      right: '10px',
+      background: 'var(--bg-secondary)',
+      color: 'var(--text-primary)',
+      padding: '8px 12px',
+      borderRadius: '6px',
+      fontSize: '12px',
+      border: '1px solid var(--border-color)',
+      zIndex: 9999
+    }}>
+      <div>🕐 {themeInfo.currentTime}</div>
+      <div>🎨 {themeInfo.activeTheme} {themeInfo.isAutoMode ? '(auto)' : '(manual)'}</div>
+      <div>{themeInfo.isDay ? '☀️ Día' : '🌙 Noche'}</div>
+    </div>
+  );
+};
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -374,8 +399,29 @@ const ChatPage = () => (
 );
 
 function App() {
+  // Inicializar el tema día/noche automático
+  const { theme, day_night, getThemeInfo, setTheme } = useDayNightTheme();
+  const themeInfo = getThemeInfo();
+
+  // Efecto para aplicar el tema inicial
+  useEffect(() => {
+    console.log('🌓 Sistema de tema día/noche iniciado');
+    console.log('🕐 Hora actual:', themeInfo.currentTime);
+    console.log('🎨 Tema detectado:', themeInfo.autoDetectedTheme);
+    
+    // Exponer la función day_night globalmente para desarrollo/debug
+    if (process.env.NODE_ENV === 'development') {
+      window.day_night = day_night;
+      window.setTheme = setTheme;
+      window.getThemeInfo = getThemeInfo;
+    }
+  }, []);
+
   return (
     <Router>
+      {/* Información del tema (solo en desarrollo) */}
+      <ThemeInfo themeInfo={themeInfo} />
+      
       <Routes>
         {/* Rutas de administración */}
         <Route path="/admin/login" element={<AdminLogin />} />
