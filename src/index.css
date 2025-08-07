@@ -1,3 +1,60 @@
+/* ================= CHAT INPUT BAR ================= */
+.chat-input-bar {
+  background: var(--bg-secondary) !important;
+}
+
+.dark-theme .chat-input-bar {
+  background: var(--bg-tertiary) !important;
+}
+
+.chat-input-field {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.chat-input-field:focus {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--sidebar-active) !important;
+  box-shadow: 0 0 0 0.2rem rgba(31, 111, 235, 0.25) !important;
+}
+/* ================= CHAT MESSAGE BUBBLES ================= */
+.message {
+  max-width: 70%;
+  margin: 0.5rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  word-break: break-word;
+  font-size: 1rem;
+  box-shadow: 0 1px 4px var(--shadow);
+  transition: background 0.3s, color 0.3s;
+}
+
+.user-message {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.bot-message {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+/* Tema oscuro: asegúrate de buen contraste */
+.dark-theme .user-message {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dark-theme .bot-message {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
 /* Variables CSS para temas día/noche */
 :root {
   /* Tema claro (día) */

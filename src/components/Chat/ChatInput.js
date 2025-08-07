@@ -115,11 +115,11 @@ const ChatInput = ({ onSendMessage, onImageUpload, onSignLanguageUpload, onAudio
   };
 
   return (
-    <form onSubmit={handleSubmit} className='p-3 bg-light border-top'>
+    <form onSubmit={handleSubmit} className='p-3 chat-input-bar border-top'>
       <div className='input-group'>
         <input
           type='text'
-          className='form-control'
+          className='form-control chat-input-field'
           placeholder='Escribe un mensaje...'
           value={inputMessage}
           onChange={(e) => setInputMessage(e.target.value)}

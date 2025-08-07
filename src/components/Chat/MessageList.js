@@ -82,13 +82,7 @@ const MessageList = ({ messages, isTyping, autoPlayAudio }) => {
           className={`d-flex ${message.isUser ? 'justify-content-end' : 'justify-content-start'}`}
         >
           <div
-            className={`p-3 rounded-3 ${
-              message.isUser 
-                ? 'bg-primary text-white' 
-                : message.type === 'error' 
-                  ? 'bg-danger-subtle' 
-                  : 'bg-light'
-            }`}
+            className={`message ${message.isUser ? 'user-message' : message.type === 'error' ? 'bot-message text-danger' : 'bot-message'}`}
             style={{ maxWidth: '75%' }}
           >
             {renderMessageContent(message)}
@@ -98,7 +92,7 @@ const MessageList = ({ messages, isTyping, autoPlayAudio }) => {
       
       {isTyping && (
         <div className="d-flex justify-content-start">
-          <div className="bg-light p-3 rounded-3 d-flex align-items-center">
+          <div className="message bot-message d-flex align-items-center" style={{ maxWidth: '75%' }}>
             <span className="me-2">Escribiendo</span>
             <div className="spinner-grow spinner-grow-sm text-secondary" role="status">
               <span className="visually-hidden">Escribiendo...</span>

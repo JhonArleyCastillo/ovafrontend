@@ -145,7 +145,7 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del análisis
    */
   static async analyzeSignLanguageImage(image) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.ANALYZE_SIGN_LANGUAGE}`;
+    const endpoint = API_ROUTES.ASL_PREDICT_SPACE;
     return this._processImageBase(
       image, 
       endpoint, 
@@ -160,7 +160,7 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
   static async processImage(imageInput) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.PROCESS_IMAGE}`;
+    const endpoint = API_ROUTES.ASL_PREDICT_SPACE;
     return this._processImageBase(
       imageInput, 
       endpoint, 
@@ -175,7 +175,7 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
   static async processAudio(audioBlob) {
-    const endpoint = `${API_BASE_URL}${API_ROUTES.PROCESS_VOICE}`;
+    const endpoint = API_ROUTES.CHAT;
     Logger.debug(this.COMPONENT_NAME, `Procesando audio: ${endpoint}`);
     
     return await safeApiCall(

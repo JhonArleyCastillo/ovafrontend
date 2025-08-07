@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
@@ -10,11 +10,12 @@ import AboutUsSection from './components/AboutUsSection';
 import ServicesSection from './components/ServicesSection';
 import DatabaseService from './services/database.service';
 import useDayNightTheme from './hooks/useDayNightTheme';
+import { Outlet } from 'react-router-dom';
 
 // Componente para mostrar información del tema (opcional, para debug)
 const ThemeInfo = ({ themeInfo }) => {
   if (process.env.NODE_ENV !== 'development') return null;
-  
+
   return (
     <div style={{
       position: 'fixed',
@@ -398,18 +399,60 @@ const ChatPage = () => (
   </div>
 );
 
+// Layout principal con Sidebar
+const MainLayout = () => (
+  <div className="d-flex flex-column flex-lg-row min-vh-100">
+    <Sidebar />
+    <main className="flex-grow-1 px-3">
+      <Outlet /> {/* Aquí se renderizarán las rutas hijas */}
+    </main>
+  </div>
+);
+
 function App() {
   // Inicializar el tema día/noche automático
   const { theme, day_night, getThemeInfo, setTheme } = useDayNightTheme();
   const themeInfo = getThemeInfo();
+  const [messages, setMessages] = useState([]);  // Control global de mensajes
+  const wsRef = useRef(null);
+  const reconnectTimeout = useRef(null);
+  const backoff = useRef(5000); // 5s inicial
 
-  // Efecto para aplicar el tema inicial
+  // Conexión y reconexión controlada
+  const connectWebSocket = useCallback(() => {
+    wsRef.current = new WebSocket('ws://localhost:8000/api/chat');
+    console.log('🔗 Intentando conectar WebSocket...');
+
+    wsRef.current.onopen = () => {
+      console.log('✅ WebSocket conectado');
+      backoff.current = 5000; // Reset backoff
+    };
+
+    wsRef.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        setMessages(prev => [...prev, data]);
+      } catch (e) {
+        console.warn('Mensaje no JSON:', event.data);
+      }
+    };
+
+    wsRef.current.onclose = (e) => {
+      console.warn('⚠️ WebSocket cerrado. Intentando reconectar en', backoff.current / 1000, 's...', e);
+      reconnectTimeout.current = setTimeout(() => {
+        backoff.current = Math.min(backoff.current * 2, 30000); // Exponencial hasta 30s
+        connectWebSocket();
+      }, backoff.current);
+    };
+
+    wsRef.current.onerror = (e) => {
+      console.error('❌ WebSocket error:', e);
+      wsRef.current.close();
+    };
+  }, []);
+
   useEffect(() => {
     console.log('🌓 Sistema de tema día/noche iniciado');
-    console.log('🕐 Hora actual:', themeInfo.currentTime);
-    console.log('🎨 Tema detectado:', themeInfo.autoDetectedTheme);
-    
-    // Exponer la función day_night globalmente para desarrollo/debug
     if (process.env.NODE_ENV === 'development') {
       window.day_night = day_night;
       window.setTheme = setTheme;
@@ -417,13 +460,20 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      console.log('🧹 Limpiando WebSocket al desmontar');
+      if (wsRef.current) wsRef.current.close();
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+    };
+  }, [connectWebSocket]);
+
   return (
     <Router>
-      {/* Información del tema (solo en desarrollo) */}
       <ThemeInfo themeInfo={themeInfo} />
-      
       <Routes>
-        {/* Rutas de administración */}
+        {/* Admin routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={
           <PrivateRoute>
@@ -431,21 +481,17 @@ function App() {
           </PrivateRoute>
         } />
         
-        {/* Rutas públicas con sidebar */}
-        <Route path="*" element={
-          <div className="d-flex flex-column flex-lg-row min-vh-100">
-            <Sidebar />
-            <main className="flex-grow-1 px-3">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/services" element={<ServicesPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/chat" element={<ChatPage />} />
-              </Routes>
-            </main>
-          </div>
-        } />
+        {/* Public routes with Sidebar */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="services" element={<ServicesPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="chat" element={<Chat messages={messages} setMessages={setMessages} socket={wsRef.current} />} />
+        </Route>
+
+        {/* Catch-all for 404 */}
+        <Route path="*" element={<div>404 - Página no encontrada</div>} />
       </Routes>
     </Router>
   );
