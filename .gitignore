@@ -40,4 +40,48 @@ firebase-debug.*.log
 # Caché
 .cache/
 .npm/
-.eslintcache 
+.eslintcache
+
+# Archivos de test y desarrollo - NO subir a producción
+*.test.js
+*.test.jsx
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.jsx
+*.spec.ts
+*.spec.tsx
+test_*.js
+test_*.jsx
+test_*.html
+test_*.ts
+test_*.tsx
+*_test.js
+*_test.jsx
+*_test.html
+*_test.ts
+*_test.tsx
+connection-test.js
+websocket-test.*
+demo_*.js
+demo_*.html
+debug_*.js
+debug_*.html
+benchmark_*.js
+performance_test.*
+stress_test.*
+integration_test.*
+
+# Archivos temporales de desarrollo
+temp_*.js
+temp_*.jsx
+temp_*.html
+temp_*.css
+playground_*.*
+sandbox_*.*
+
+# Snapshots de testing
+**/__snapshots__/
+**/__tests__/temp/
+**/test-results/
+**/test-reports/ 
