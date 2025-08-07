@@ -11,9 +11,7 @@ root.render(
   </React.StrictMode>,
 );
 
-// Habilitamos la medición de rendimiento solo en entorno de desarrollo
+// Medición de rendimiento optimizada para producción
 if (process.env.NODE_ENV === 'development') {
   reportWebVitals(console.log);
-} else {
-  reportWebVitals();
 }
