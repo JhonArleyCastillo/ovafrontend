@@ -5,6 +5,7 @@ import ApiService from '../services/api';
 import { API_ROUTES, WS_ROUTES } from '../config/api.routes';
 import { formatImageAnalysisResult } from '../services/chatUtils';
 import { ErrorMessage } from './common';
+import WebSocketMonitor from './WebSocketMonitor';
 import ChatHeader from './Chat/ChatHeader';
 import MessageList from './Chat/MessageList';
 import ChatInput from './Chat/ChatInput';
@@ -100,10 +101,19 @@ const Chat = ({ onImageResult }) => {
   /**
    * Añade un mensaje de error al historial de chat
    */
-  const addErrorMessage = useCallback((error) => {
-    const errorText = error?.message || error?.toString() || 'Error desconocido';
+  const addErrorMessage = useCallback((errorInput) => {
+    // Si es un string que ya tiene formato de error, usarlo directamente
+    let errorText;
+    if (typeof errorInput === 'string') {
+      errorText = errorInput.startsWith('Error:') ? errorInput : `Error: ${errorInput}`;
+    } else {
+      // Si es un objeto error, extraer el mensaje y formatear
+      const message = errorInput?.message || errorInput?.toString() || 'Error desconocido';
+      errorText = `Error: ${message}`;
+    }
+    
     addMessage({
-      text: `Error: ${errorText}`,
+      text: errorText,
       isUser: false,
       type: 'error'
     });
@@ -235,19 +245,45 @@ const Chat = ({ onImageResult }) => {
   };
 
   /**
-   * Inicializar la conexión WebSocket
+   * Inicializar la conexión WebSocket con manejo robusto
    */
-  const initWebSocket = useCallback(() => {
+  const initWebSocket = useCallback(async () => {
     if (ws.current && ws.current.readyState !== WebSocket.CLOSED) {
+      if (ws.current.cleanupListeners) {
+        ws.current.cleanupListeners();
+      }
       ws.current.close();
     }
 
-    ws.current = ApiService.createWebSocketConnection(WS_ROUTES.CHAT, {
-      onOpen: handleWebSocketOpen,
-      onMessage: handleWebSocketMessage,
-      onClose: handleWebSocketClose,
-      onError: handleWebSocketError
-    });
+    try {
+      Logger.info(COMPONENT_NAME, '🚀 Inicializando WebSocket con manejo robusto...');
+      
+      ws.current = await ApiService.createRobustWebSocketConnection(WS_ROUTES.CHAT, {
+        onOpen: handleWebSocketOpen,
+        onMessage: handleWebSocketMessage,
+        onClose: handleWebSocketClose,
+        onError: handleWebSocketError
+      });
+      
+      Logger.info(COMPONENT_NAME, '✅ WebSocket inicializado exitosamente');
+      
+    } catch (error) {
+      Logger.error(COMPONENT_NAME, '❌ Error al inicializar WebSocket robusto:', error);
+      
+      // Fallback al método original si el robusto falla
+      Logger.warn(COMPONENT_NAME, '🔄 Intentando fallback a conexión WebSocket estándar...');
+      try {
+        ws.current = ApiService.createWebSocketConnection(WS_ROUTES.CHAT, {
+          onOpen: handleWebSocketOpen,
+          onMessage: handleWebSocketMessage,
+          onClose: handleWebSocketClose,
+          onError: handleWebSocketError
+        });
+      } catch (fallbackError) {
+        Logger.error(COMPONENT_NAME, '❌ Error en fallback WebSocket:', fallbackError);
+        setConnectionError('No se pudo establecer conexión con el servidor');
+      }
+    }
   }, [handleWebSocketMessage]);
 
   /**
@@ -310,7 +346,7 @@ const Chat = ({ onImageResult }) => {
       setIsTyping(true);
     } else {
       Logger.error(COMPONENT_NAME, 'No hay conexión WebSocket abierta');
-      setConnectionError('Error: No hay conexión con el servidor');
+      setConnectionError('No hay conexión con el servidor');
     }
   }, [addMessage, isConnected, setConnectionError]);
 
@@ -360,7 +396,7 @@ const Chat = ({ onImageResult }) => {
           setIsTyping(true);
         } else {
           Logger.error(COMPONENT_NAME, 'No hay conexión WebSocket abierta para audio');
-          setConnectionError('Error: No hay conexión con el servidor');
+          setConnectionError('No hay conexión con el servidor');
           addErrorMessage('No se pudo procesar el audio');
         }
       };
@@ -615,6 +651,16 @@ const Chat = ({ onImageResult }) => {
             isTyping={isTyping}
           />
         </>
+      )}
+      
+      {/* Monitor de WebSocket - Solo visible en desarrollo o cuando hay problemas */}
+      {(process.env.NODE_ENV === 'development' || !isConnected || connectionError) && (
+        <WebSocketMonitor
+          wsConnection={ws.current}
+          onReconnect={initWebSocket}
+          showDetails={process.env.NODE_ENV === 'development'}
+          position="bottom-right"
+        />
       )}
     </div>
   );

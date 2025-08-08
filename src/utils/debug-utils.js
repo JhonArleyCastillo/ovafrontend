@@ -2,10 +2,8 @@
  * Utilidades de depuración para la aplicación
  * Proporciona herramientas para facilitar la depuración de componentes React
  */
-
 // Determina si estamos en modo de desarrollo
 const isDev = process.env.NODE_ENV !== 'production';
-
 /**
  * Sistema de registro centralizado con diferentes niveles
  */

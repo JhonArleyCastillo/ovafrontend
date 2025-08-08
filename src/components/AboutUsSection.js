@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { image1, image2, image3, image4 } from '../images';
 import { CapabilitiesIcons } from './ui/IllustrationComponents';
 

@@ -1,4 +1,5 @@
 import Logger, { safeApiCall, createMonitoredWebSocket } from '../utils/debug-utils';
+import { WebSocketManager } from '../utils/websocket-manager';
 import { API_BASE_URL, API_ROUTES, WS_ROUTES } from '../config/api.routes';
 import { COMPONENT_NAMES } from '../config/constants';
 import { blobToBase64 } from '../utils/media-utils';
@@ -43,9 +44,133 @@ class ApiService {
       return false;
     }
   }
+  /**
+   * Crea una conexión WebSocket con manejo robusto de estado y retry automático
+   * @param {string} url - Ruta específica para la conexión WebSocket (no usado, se gestiona internamente)
+   * @param {Object} handlers - Manejadores de eventos del WebSocket
+   * @returns {Promise<Object>} - Wrapper del WebSocketManager con API compatible
+   */
+  static async createRobustWebSocketConnection(url, handlers = {}) {
+    try {
+      Logger.info(this.COMPONENT_NAME, '🚀 Iniciando conexión WebSocket con manejo robusto');
+      
+      // Crear instancia del WebSocketManager
+      const wsManager = new WebSocketManager(this.COMPONENT_NAME);
+      
+      // Intentar conectar con los handlers proporcionados
+      await wsManager.connect({
+        onOpen: (event) => {
+          Logger.info(this.COMPONENT_NAME, '✅ WebSocket conectado exitosamente');
+          if (handlers.onOpen) {
+            handlers.onOpen(event);
+          }
+        },
+        
+        onMessage: (event) => {
+          Logger.debug(this.COMPONENT_NAME, `📨 Mensaje recibido: ${event.data?.substring(0, 100)}...`);
+          if (handlers.onMessage) {
+            handlers.onMessage(event);
+          }
+        },
+        
+        onClose: (event) => {
+          const closeInfo = {
+            code: event.code || 'N/A',
+            reason: event.reason || 'Sin razón',
+            wasClean: event.wasClean || false
+          };
+          Logger.warn(this.COMPONENT_NAME, `🔌 WebSocket cerrado: ${JSON.stringify(closeInfo)}`);
+          if (handlers.onClose) {
+            handlers.onClose(event);
+          }
+        },
+        
+        onError: (error) => {
+          // Solo loggear el error si no es durante el proceso de conexión inicial
+          if (wsManager.getConnectionState() === 'connected') {
+            Logger.error(this.COMPONENT_NAME, '❌ Error en WebSocket activo:', error);
+          } else {
+            Logger.debug(this.COMPONENT_NAME, '🔄 Error de conexión (se reintentará automáticamente):', error);
+          }
+          
+          if (handlers.onError) {
+            handlers.onError(error);
+          }
+        }
+      });
+      
+      // Crear wrapper para compatibilidad con código existente
+      const wsWrapper = {
+        // Propiedades del WebSocket estándar
+        get readyState() {
+          return wsManager.isConnected() ? WebSocket.OPEN : WebSocket.CLOSED;
+        },
+        
+        get url() {
+          return wsManager.currentUrl || 'unknown';
+        },
+        
+        // Métodos del WebSocket estándar
+        send: (data) => {
+          return wsManager.send(data);
+        },
+        
+        close: (code, reason) => {
+          wsManager.disconnect(code, reason);
+        },
+        
+        // Métodos adicionales del manager
+        restart: () => {
+          wsManager.restart();
+        },
+        
+        getConnectionState: () => {
+          return wsManager.getConnectionState();
+        },
+        
+        isConnected: () => {
+          return wsManager.isConnected();
+        },
+        
+        // Referencia al manager para acceso avanzado
+        _manager: wsManager,
+        
+        // Función de limpieza para compatibilidad
+        cleanupListeners: () => {
+          wsManager.cleanup();
+        }
+      };
+      
+      Logger.info(this.COMPONENT_NAME, '🎯 WebSocket wrapper creado exitosamente');
+      return wsWrapper;
+      
+    } catch (error) {
+      Logger.error(this.COMPONENT_NAME, `❌ Error al crear conexión WebSocket robusta: ${error.message}`, error);
+      
+      // Retornar un objeto fallback que maneje errores graciosamente
+      return {
+        readyState: WebSocket.CLOSED,
+        url: 'failed',
+        send: () => {
+          Logger.warn(this.COMPONENT_NAME, '⚠️ Intento de envío en WebSocket fallido');
+          return false;
+        },
+        close: () => {
+          Logger.debug(this.COMPONENT_NAME, '🔌 Cierre solicitado en WebSocket fallido');
+        },
+        restart: () => {
+          Logger.info(this.COMPONENT_NAME, '🔄 Reinicio solicitado - creando nueva conexión');
+          return this.createRobustWebSocketConnection(url, handlers);
+        },
+        getConnectionState: () => 'failed',
+        isConnected: () => false,
+        cleanupListeners: () => {}
+      };
+    }
+  }
 
   /**
-   * Crea una conexión WebSocket
+   * Crea una conexión WebSocket con manejo robusto de estado
    * @param {string} url - Ruta específica para la conexión WebSocket
    * @param {Object} handlers - Manejadores de eventos del WebSocket
    * @returns {WebSocket} - Instancia del WebSocket
@@ -74,10 +199,48 @@ class ApiService {
       
       const wsInstance = createMonitoredWebSocket(wsUrl, this.COMPONENT_NAME);
       
-      if (handlers.onOpen) wsInstance.onopen = handlers.onOpen;
-      if (handlers.onMessage) wsInstance.onmessage = handlers.onMessage;
-      if (handlers.onClose) wsInstance.onclose = handlers.onClose;
-      if (handlers.onError) wsInstance.onerror = handlers.onError;
+      // Configurar manejadores con logging mejorado
+      if (handlers.onOpen) {
+        wsInstance.onopen = (event) => {
+          Logger.info(this.COMPONENT_NAME, `WebSocket conectado exitosamente a ${wsUrl}`);
+          handlers.onOpen(event);
+        };
+      }
+      
+      if (handlers.onMessage) {
+        wsInstance.onmessage = (event) => {
+          Logger.debug(this.COMPONENT_NAME, `Mensaje recibido desde ${wsUrl}: ${event.data?.substring(0, 100)}...`);
+          handlers.onMessage(event);
+        };
+      }
+      
+      if (handlers.onClose) {
+        wsInstance.onclose = (event) => {
+          const closeInfo = {
+            code: event.code || 'N/A',
+            reason: event.reason || 'Sin razón',
+            wasClean: event.wasClean || false
+          };
+          Logger.warn(this.COMPONENT_NAME, `WebSocket cerrado: ${JSON.stringify(closeInfo)}`);
+          handlers.onClose(event);
+        };
+      }
+      
+      if (handlers.onError) {
+        wsInstance.onerror = (error) => {
+          Logger.error(this.COMPONENT_NAME, `Error en WebSocket ${wsUrl}:`, error);
+          handlers.onError(error);
+        };
+      }
+      
+      // Función de limpieza personalizada
+      wsInstance.cleanupListeners = () => {
+        Logger.debug(this.COMPONENT_NAME, `Limpiando listeners de WebSocket ${wsUrl}`);
+        wsInstance.onopen = null;
+        wsInstance.onmessage = null;
+        wsInstance.onclose = null;
+        wsInstance.onerror = null;
+      };
       
       return wsInstance;
     } catch (error) {

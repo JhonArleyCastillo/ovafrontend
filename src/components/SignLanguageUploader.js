@@ -36,7 +36,7 @@ const SignLanguageUploader = () => {
         
         // Si la imagen sigue siendo demasiado grande después de optimizar
         if (tooBig) {
-          setError(`La imagen es demasiado grande y no se pudo reducir por debajo de 5MB`);
+          setError('La imagen es demasiado grande y no se pudo reducir por debajo de 5MB');
           return;
         }
         

@@ -35,7 +35,14 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint src/**/*.{js,jsx}",
-    "lint:fix": "eslint src/**/*.{js,jsx} --fix"
+    "lint:fix": "eslint src/**/*.{js,jsx} --fix",
+    "health-check": "node scripts/health-check.js",
+    "health-check:dev": "node scripts/health-check.js development",
+    "health-check:staging": "node scripts/health-check.js staging",
+    "health-check:prod": "node scripts/health-check.js production",
+    "pre-deploy": "npm run build && npm run health-check",
+    "deploy:staging": "npm run health-check:staging",
+    "deploy:prod": "npm run health-check:prod"
   },
   "eslintConfig": {
     "extends": [

@@ -37,7 +37,13 @@ const VoiceRecorder = () => {
     };
 
     const setupWebSocket = () => {
-      // Crear WebSocket para la comunicación de audio
+      // ❌ WebSocket de audio DESHABILITADO - Endpoint removido del backend
+      // El backend optimizado para EC2 no incluye servicios de audio
+      Logger.warn(COMPONENT_NAME, 'Servicio de audio deshabilitado - Backend optimizado para EC2');
+      setIsConnected(false);
+      setError('Servicio de audio no disponible en esta versión optimizada');
+      
+      /* CÓDIGO ORIGINAL COMENTADO:
       try {
         const ws = ApiService.createWebSocketConnection(ApiService.WS_ROUTES.DETECT_AUDIO, {
           onOpen: () => {
@@ -66,6 +72,7 @@ const VoiceRecorder = () => {
         Logger.error(COMPONENT_NAME, 'Error al crear WebSocket', err);
         setError('No se pudo establecer la conexión WebSocket');
       }
+      */
     };
 
     checkConnection().then(setupWebSocket);

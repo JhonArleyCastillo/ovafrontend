@@ -38,8 +38,8 @@ export const WS_BASE_URL = `${WS_PROTOCOL}//${API_BASE_URL.replace(/^https?:\/\/
 
 // Rutas WebSocket
 export const WS_ROUTES = {
-  DETECT_AUDIO: `${WS_BASE_URL}/api/detect`,
-  CHAT: `${WS_BASE_URL}/api/chat`,
+  // DETECT_AUDIO: `${WS_BASE_URL}/api/detect`, // ❌ REMOVIDO - Endpoint no disponible en backend optimizado
+  CHAT: `${WS_BASE_URL}/api/chat`, // ✅ Disponible
 };
 
 // Rutas REST

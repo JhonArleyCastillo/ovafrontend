@@ -63,9 +63,9 @@ const MessageList = ({ messages, isTyping, autoPlayAudio }) => {
 
       case 'error':
         return (
-          <div className="text-danger">
+          <div className="alert alert-danger d-flex align-items-center mb-0" role="alert">
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
-            {message.text}
+            <div>{message.text}</div>
           </div>
         );
 

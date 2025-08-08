@@ -238,7 +238,7 @@ export const findBestAvailableServer = async (serverUrls, timeout = 5000) => {
   const isProduction = process.env.NODE_ENV === 'production';
   
   // Filtrar URLs inválidas o que usen directamente IP con HTTPS
-  let validServerUrls = serverUrls.filter(url => {
+  const validServerUrls = serverUrls.filter(url => {
     // Evitar URLs HTTPS que usen IP directamente (causará error de certificado)
     if (url.startsWith('https://') && /^https:\/\/\d+\.\d+\.\d+\.\d+/.test(url)) {
       console.warn(`Omitiendo URL inválida: ${url} - No se puede usar HTTPS con IP directa`);
