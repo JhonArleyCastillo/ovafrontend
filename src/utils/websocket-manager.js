@@ -55,8 +55,8 @@ export const WS_CONFIG = {
       fallback: 'wss://staging.ovaonline.tech/api/chat'
     },
     production: {
-      primary: 'wss://api.ovaonline.tech/api/chat',
-      fallback: 'wss://backup-api.ovaonline.tech/api/chat'
+  primary: 'wss://www.api.ovaonline.tech/api/chat',
+  fallback: 'wss://www.api.ovaonline.tech/api/chat'
     }
   }
 };
@@ -91,15 +91,20 @@ export class WebSocketManager {
    */
   async checkServerAvailability(wsUrl) {
     try {
-      // Convertir URL de WebSocket a HTTP para verificación
-      const httpUrl = wsUrl.replace(/^wss?:\/\//, 'http://').replace('/api/chat', '/status');
+  // Derivar origen a partir de la URL WS (evitar reemplazos de path frágiles)
+  const parsed = new URL(wsUrl);
+  const httpProto = parsed.protocol === 'wss:' ? 'https:' : 'http:';
+  const origin = `${httpProto}//${parsed.host}`;
+  const healthUrl = `${origin}/chat/health`;
+  const statusUrl = `${origin}/status`;
       
-      Logger.debug(this.componentName, `Verificando disponibilidad del servidor: ${httpUrl}`);
+      // Intentar primero endpoint específico de WS
+      Logger.debug(this.componentName, `Verificando disponibilidad WS health: ${healthUrl}`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
       
-      const response = await fetch(httpUrl, {
+      let response = await fetch(healthUrl, {
         method: 'GET',
         signal: controller.signal,
         cache: 'no-cache'
@@ -108,10 +113,16 @@ export class WebSocketManager {
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        Logger.info(this.componentName, `Servidor disponible en ${httpUrl}`);
+        Logger.info(this.componentName, `Servidor WS disponible en ${healthUrl}`);
         return true;
       } else {
-        Logger.warn(this.componentName, `Servidor respondió con estado ${response.status}`);
+        // Intentar con /status como respaldo
+        Logger.warn(this.componentName, `WS health respondió ${response.status}. Probando ${statusUrl}`);
+        const res2 = await fetch(statusUrl, { method: 'GET', cache: 'no-cache' });
+        if (res2.ok) {
+          Logger.info(this.componentName, `Servidor HTTP disponible en ${statusUrl}`);
+          return true;
+        }
         return false;
       }
     } catch (error) {
@@ -159,8 +170,14 @@ export class WebSocketManager {
       return null;
     }
 
-    // Determinar qué URL usar
-    const url = this.retryCount === 0 ? this.endpoints.primary : this.endpoints.fallback;
+  // Construir candidatos de conexión: primary, fallback, y variante de path '/ws/chat'
+  const candidates = [this.endpoints.primary, this.endpoints.fallback];
+  const altPrimary = this.endpoints.primary.replace('/api/chat', '/ws/chat');
+  if (!candidates.includes(altPrimary)) candidates.push(altPrimary);
+
+  // Determinar qué URL usar (rotación por intento)
+  const index = Math.min(this.retryCount, candidates.length - 1);
+  const url = candidates[index];
     this.currentUrl = url;
     
     if (isRetry) {

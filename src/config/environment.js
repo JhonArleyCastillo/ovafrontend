@@ -26,9 +26,9 @@ const ENV_CONFIG = {
   },
   
   production: {
-    API_BASE_URL: 'https://api.ovaonline.tech',
-    WS_BASE_URL: 'wss://api.ovaonline.tech',
-    WS_FALLBACK_URL: 'wss://backup-api.ovaonline.tech',
+  API_BASE_URL: 'https://www.api.ovaonline.tech',
+  WS_BASE_URL: 'wss://www.api.ovaonline.tech',
+  WS_FALLBACK_URL: 'wss://www.api.ovaonline.tech',
     DEBUG_ENABLED: false,
     RETRY_ATTEMPTS: 5,
     HEARTBEAT_INTERVAL: 60000,

@@ -3,7 +3,7 @@
  */
 
 // Definir valores por defecto para los entornos
-const DEFAULT_PROD_API_URL = 'https://api.ovaonline.tech';
+const DEFAULT_PROD_API_URL = 'https://www.api.ovaonline.tech';
 const DEFAULT_DEV_API_URL = 'http://localhost:8000';
 // Ya no usamos la IP directa para evitar errores de certificado SSL
 const BACKUP_API_URL = DEFAULT_PROD_API_URL; // Usamos el dominio en lugar de la IP
