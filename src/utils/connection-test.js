@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
 /**
  * Utilidad para diagnosticar problemas de conexión
  */
-import { API_BASE_URL, API_ROUTES } from '../config/constants';
+import { REST_ROUTES, WS_ROUTES } from '../config/api.routes';
 
 /**
  * Realiza una prueba completa de conexión y devuelve resultados detallados
@@ -27,7 +28,8 @@ export const runConnectionDiagnostic = async () => {
 
   // 2. Prueba de estado del servidor
   try {
-    const statusUrl = `${API_BASE_URL}${API_ROUTES.STATUS}`;
+    // REST_ROUTES.STATUS ya es una URL absoluta
+    const statusUrl = REST_ROUTES.STATUS;
     console.log(`Probando conexión a: ${statusUrl}`);
     
     const startTime = performance.now();
@@ -62,12 +64,8 @@ export const runConnectionDiagnostic = async () => {
 
   // 3. Prueba de WebSocket
   try {
-    let wsUrl = '';
-    if (API_BASE_URL.startsWith('https://')) {
-      wsUrl = `${API_BASE_URL.replace('https://', 'wss://')}${API_ROUTES.CHAT_WS}`;
-    } else if (API_BASE_URL.startsWith('http://')) {
-      wsUrl = `${API_BASE_URL.replace('http://', 'ws://')}${API_ROUTES.CHAT_WS}`;
-    }
+    // WS_ROUTES.CHAT ya es absoluto (ws:// o wss://) derivado del API_BASE_URL
+    const wsUrl = WS_ROUTES.CHAT;
 
     console.log(`Probando conexión WebSocket a: ${wsUrl}`);
     
@@ -103,7 +101,7 @@ export const runConnectionDiagnostic = async () => {
       };
     });
     
-    results.tests.webSocketConnection = {
+  results.tests.webSocketConnection = {
       name: 'Prueba de conexión WebSocket',
       passed: wsConnectionResult.passed,
       details: wsConnectionResult.details,
@@ -160,7 +158,9 @@ if (typeof window !== 'undefined') {
   window.testConnection = logConnectionDiagnostic;
 }
 
-export default {
+const connectionTestExports = {
   runConnectionDiagnostic,
   logConnectionDiagnostic
-}; 
+};
+
+export default connectionTestExports; 

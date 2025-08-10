@@ -68,6 +68,14 @@
   --shadow: rgba(0, 0, 0, 0.1);
   --shadow-lg: rgba(0, 0, 0, 0.15);
   
+  /* Acentos y fondos dependientes del tema */
+  --accent-purple: #6C63FF; /* Usado para títulos destacados */
+  --accent-green: #00BFAE;
+  --accent-pink: #FF6584;
+  --accent-orange: #FFB300;
+  --hero-bg-start: #f8fafc; /* Gradiente héroe */
+  --hero-bg-end: #e0e7ff;
+  
   /* Variables del sidebar (mantener para compatibilidad) */
   --sidebar-width: 280px;
   --sidebar-bg: #0d1117;
@@ -92,6 +100,13 @@
   --border-color: #30363d;
   --shadow: rgba(0, 0, 0, 0.3);
   --shadow-lg: rgba(0, 0, 0, 0.4);
+  /* Acentos suavizados para noche (mejor contraste en fondo oscuro) */
+  --accent-purple: #8AB4FF;
+  --accent-green: #2EE6D1;
+  --accent-pink: #FF8AA3;
+  --accent-orange: #FFC266;
+  --hero-bg-start: #0f1320;
+  --hero-bg-end: #1b1f2e;
 }
 
 /* Tema claro (día) - explícito */
@@ -105,6 +120,13 @@
   --border-color: #dee2e6;
   --shadow: rgba(0, 0, 0, 0.1);
   --shadow-lg: rgba(0, 0, 0, 0.15);
+  /* Acentos explícitos en modo claro */
+  --accent-purple: #6C63FF;
+  --accent-green: #00BFAE;
+  --accent-pink: #FF6584;
+  --accent-orange: #FFB300;
+  --hero-bg-start: #f8fafc;
+  --hero-bg-end: #e0e7ff;
 }
 
 /* Aplicar tema al body y elementos principales */
@@ -112,6 +134,38 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Aplicar color de texto del tema globalmente con baja especificidad */
+:where(h1,h2,h3,h4,h5,h6,p,span,li,dt,dd,small,label,legend,th,td,blockquote,code,pre,div) {
+  color: var(--text-primary);
+}
+
+/* Enlaces usan color de texto del tema por defecto, con hover acorde */
+a { color: var(--text-primary); }
+a:hover { color: var(--sidebar-active); }
+
+/* Utilidades de fondo dependientes del tema (para reemplazar bg-white/bg-light) */
+.bg-theme-primary { background-color: var(--bg-primary) !important; color: var(--text-primary) !important; }
+.bg-theme-secondary { background-color: var(--bg-secondary) !important; color: var(--text-primary) !important; }
+.bg-theme-tertiary { background-color: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+
+/* Utilidades de texto adaptadas al tema */
+.text-accent-purple { color: var(--accent-purple) !important; }
+.text-accent-green { color: var(--accent-green) !important; }
+.text-accent-pink { color: var(--accent-pink) !important; }
+.text-accent-orange { color: var(--accent-orange) !important; }
+.text-primary-theme { color: var(--text-primary) !important; }
+.text-secondary-theme { color: var(--text-secondary) !important; }
+.text-muted-theme { color: var(--text-muted) !important; }
+
+/* Mapea utilidades comunes a variables de tema */
+.text-muted { color: var(--text-muted) !important; }
+.lead { color: var(--text-secondary) !important; }
+
+/* Fondo héroe con gradiente dependiente del tema */
+.bg-hero-gradient {
+  background: linear-gradient(135deg, var(--hero-bg-start) 60%, var(--hero-bg-end) 100%);
 }
 
 /* Estilos para cards y contenedores */

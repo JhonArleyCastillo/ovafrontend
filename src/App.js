@@ -8,6 +8,7 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import PrivateRoute from './components/admin/PrivateRoute';
 import AboutUsSection from './components/AboutUsSection';
 import ServicesSection from './components/ServicesSection';
+import Diagnostics from './components/Diagnostics';
 import DatabaseService from './services/database.service';
 import useDayNightTheme from './hooks/useDayNightTheme';
 import { Outlet } from 'react-router-dom';
@@ -21,7 +22,7 @@ const HomePage = () => (
     {/* Hero section con descripción principal */}
     <div className="row mb-5">
       <div className="col-md-8">
-        <div className="card border-0 bg-light">
+  <div className="card border-0 bg-theme-secondary">
           <div className="card-body">
             <h2>Transformando la interacción digital</h2>
             <p className="fs-5">OVA es una plataforma de asistencia virtual avanzada que combina tecnologías de procesamiento de lenguaje natural, reconocimiento de voz y análisis de imágenes para ofrecer una experiencia interactiva única.</p>
@@ -98,7 +99,7 @@ const HomePage = () => (
     {/* Call to action */}
     <div className="row mt-5">
       <div className="col-12 text-center">
-        <div className="card bg-primary text-white">
+  <div className="card bg-theme-tertiary text-primary-theme">
           <div className="card-body py-4">
             <h4>¿Listo para probar nuestro asistente inteligente?</h4>
             <p>Accede a nuestro chat y descubre el potencial de OVA</p>
@@ -392,13 +393,22 @@ function App() {
   const wsRef = useRef(null);
   const reconnectTimeout = useRef(null);
   const backoff = useRef(5000); // 5s inicial
+  const isDev = process.env.NODE_ENV !== 'production';
 
   // Conexión y reconexión controlada
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const connectWebSocket = useCallback(() => {
+    if (!isDev) {
+      // eslint-disable-next-line no-console
+      console.info('ℹ️ WebSocket local deshabilitado en producción (se usa conexión robusta dentro de Chat).');
+      return;
+    }
     wsRef.current = new WebSocket('ws://localhost:8000/api/chat');
-    console.log('🔗 Intentando conectar WebSocket...');
+    // eslint-disable-next-line no-console
+    console.log('🔗 Intentando conectar WebSocket (DEV local)...');
 
     wsRef.current.onopen = () => {
+      // eslint-disable-next-line no-console
       console.log('✅ WebSocket conectado');
       backoff.current = 5000; // Reset backoff
     };
@@ -413,6 +423,7 @@ function App() {
     };
 
     wsRef.current.onclose = (e) => {
+      // eslint-disable-next-line no-console
       console.warn('⚠️ WebSocket cerrado. Intentando reconectar en', backoff.current / 1000, 's...', e);
       reconnectTimeout.current = setTimeout(() => {
         backoff.current = Math.min(backoff.current * 2, 30000); // Exponencial hasta 30s
@@ -421,19 +432,21 @@ function App() {
     };
 
     wsRef.current.onerror = (e) => {
+      // eslint-disable-next-line no-console
       console.error('❌ WebSocket error:', e);
       wsRef.current.close();
     };
   }, []);
 
   useEffect(() => {
-    connectWebSocket();
+    if (isDev) connectWebSocket();
     return () => {
+      // eslint-disable-next-line no-console
       console.log('🧹 Limpiando WebSocket al desmontar');
       if (wsRef.current) wsRef.current.close();
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
     };
-  }, [connectWebSocket]);
+  }, [connectWebSocket, isDev]);
 
   return (
     <Router>
@@ -445,6 +458,8 @@ function App() {
             <AdminDashboard />
           </PrivateRoute>
         } />
+  {/* Diagnostics route */}
+  <Route path="/diagnostics" element={<Diagnostics />} />
         
         {/* Public routes with Sidebar */}
         <Route path="/" element={<MainLayout />}>
@@ -452,7 +467,7 @@ function App() {
           <Route path="about" element={<AboutPage />} />
           <Route path="services" element={<ServicesPage />} />
           <Route path="contact" element={<ContactPage />} />
-          <Route path="chat" element={<Chat messages={messages} setMessages={setMessages} socket={wsRef.current} />} />
+          <Route path="chat" element={<Chat messages={messages} setMessages={setMessages} socket={isDev ? wsRef.current : null} />} />
         </Route>
 
         {/* Catch-all for 404 */}

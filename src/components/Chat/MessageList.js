@@ -91,9 +91,9 @@ const MessageList = ({ messages, isTyping, autoPlayAudio }) => {
       ))}
       
       {isTyping && (
-        <div className="d-flex justify-content-start">
-          <div className="message bot-message d-flex align-items-center" style={{ maxWidth: '75%' }}>
-            <span className="me-2">Escribiendo</span>
+          <div className="d-flex justify-content-start">
+            <div className="message bot-message d-flex align-items-center" style={{ maxWidth: '75%' }}>
+              <span className="me-2 text-secondary-theme">Escribiendo</span>
             <div className="spinner-grow spinner-grow-sm text-secondary" role="status">
               <span className="visually-hidden">Escribiendo...</span>
             </div>

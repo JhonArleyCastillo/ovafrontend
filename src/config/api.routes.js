@@ -21,6 +21,12 @@ if (process.env.NODE_ENV === 'production' && apiBaseUrl.startsWith('http:')) {
   apiBaseUrl = apiBaseUrl.replace('http:', 'https:');
 }
 
+// Normalizar dominio canónico en producción para evitar redirecciones cruzadas (api -> www.api)
+if (process.env.NODE_ENV === 'production') {
+  // Canonicalizar api -> www.api sin necesidad de try/catch
+  apiBaseUrl = apiBaseUrl.replace(/^https?:\/\/api\.ovaonline\.tech\b/i, 'https://www.api.ovaonline.tech');
+}
+
 export const API_BASE_URL = apiBaseUrl;
 
 // URL de respaldo para intentar si la principal falla

@@ -5,7 +5,6 @@ import ApiService from '../services/api';
 import { API_ROUTES, WS_ROUTES } from '../config/api.routes';
 import { formatImageAnalysisResult } from '../services/chatUtils';
 import { ErrorMessage } from './common';
-import WebSocketMonitor from './WebSocketMonitor';
 import ChatHeader from './Chat/ChatHeader';
 import MessageList from './Chat/MessageList';
 import ChatInput from './Chat/ChatInput';
@@ -565,24 +564,38 @@ const Chat = ({ onImageResult }) => {
       // Para imágenes, usamos el endpoint REST
       try {
         const { success, data, error } = await ApiService.analyzeSignLanguageImage(file);
-        
+
         if (success && data) {
-          // Mostrar resultado en el chat
+          const pred = data.prediction;
+          const conf = data.confidence;
+          const isValid = pred && typeof pred === 'string' && conf > 0;
+
+          if (isValid) {
+            addMessage({
+              text: `Interpretación: ${pred} (${conf}%)`,
+              isUser: false,
+              type: 'text',
+              timestamp: new Date().toISOString()
+            });
+            Logger.info(COMPONENT_NAME, 'Lenguaje de señas procesado exitosamente', data);
+            handleSendMessage(pred, false);
+          } else {
+            addMessage({
+              text: 'Interpretación: No se pudo interpretar el gesto',
+              isUser: false,
+              type: 'text',
+              timestamp: new Date().toISOString()
+            });
+          }
+        } else {
+          // Mostrar mensaje amigable en caso de fallo del servicio externo
           addMessage({
-            text: `Interpretación: ${data.prediction || 'No se pudo interpretar el gesto'}`,
+            text: '🔧 El servicio de IA avanzada está temporalmente no disponible. Puedo ayudarte con consultas básicas mientras tanto.',
             isUser: false,
             type: 'text',
             timestamp: new Date().toISOString()
           });
-
-          Logger.info(COMPONENT_NAME, 'Lenguaje de señas procesado exitosamente', data);
-          
-          // Si el gesto se interpretó correctamente, enviar como mensaje al chat
-          if (data.prediction) {
-            handleSendMessage(data.prediction, false);
-          }
-        } else {
-          throw new Error(error?.message || 'Error al procesar el lenguaje de señas');
+          if (error) throw new Error(error?.message || 'Error al procesar el lenguaje de señas');
         }
       } catch (error) {
         Logger.error(COMPONENT_NAME, 'Error al procesar la imagen de lenguaje de señas', error);
@@ -620,7 +633,7 @@ const Chat = ({ onImageResult }) => {
       
       {!showPrivacyModal && (
         <>
-          <div className="p-3 bg-light border-bottom">
+          <div className="p-3 bg-theme-secondary border-bottom">
             <ChatHeader 
               isConnected={isConnected} 
               autoPlayAudio={autoPlayAudio}
@@ -631,6 +644,14 @@ const Chat = ({ onImageResult }) => {
           {connectionError && (
             <div className="px-3 pt-3">
               <ErrorMessage message={connectionError} onDismiss={clearError} />
+            </div>
+          )}
+          {!isConnected && (
+            <div className="px-3">
+              <div className="alert alert-warning py-2 mb-2">
+                <i className="bi bi-wifi-off me-2"></i>
+                Intentando reconectar automáticamente al servidor...
+              </div>
             </div>
           )}
           
@@ -653,15 +674,7 @@ const Chat = ({ onImageResult }) => {
         </>
       )}
       
-      {/* Monitor de WebSocket - Solo visible en desarrollo o cuando hay problemas */}
-      {(process.env.NODE_ENV === 'development' || !isConnected || connectionError) && (
-        <WebSocketMonitor
-          wsConnection={ws.current}
-          onReconnect={initWebSocket}
-          showDetails={process.env.NODE_ENV === 'development'}
-          position="bottom-right"
-        />
-      )}
+  {/* Monitor de WebSocket eliminado: el indicador conectado/desconectado ya no se muestra */}
     </div>
   );
 };

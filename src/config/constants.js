@@ -29,10 +29,14 @@ export const UI_CONFIG = {
   ANIMATION_DURATION: 300, // ms
 };
 
-export default {
+export { API_BASE_URL, API_ROUTES };
+
+const constants = {
   API_BASE_URL,
   API_ROUTES,
   COMPONENT_NAMES,
   WEBSOCKET_CONFIG,
   UI_CONFIG,
 };
+
+export default constants;

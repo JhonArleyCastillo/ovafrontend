@@ -10,8 +10,8 @@ const ServicesSection = () => (
     {/* Banner de servicios */}
     <div className="container mb-5">
       <div className="text-center mb-5">
-        <h1 className="display-5 fw-bold text-primary mb-3">Nuestros Servicios</h1>
-        <p className="lead text-muted col-lg-8 mx-auto">
+  <h1 className="display-5 fw-bold text-primary-theme mb-3">Nuestros Servicios</h1>
+  <p className="lead col-lg-8 mx-auto">
           Soluciones de inteligencia artificial personalizadas para impulsar el crecimiento y la innovación en tu empresa o proyecto
         </p>
       </div>
@@ -19,7 +19,7 @@ const ServicesSection = () => (
       {/* Consultoría de IA */}
       <div className="row g-4 mb-5">
         <div className="col-md-6">
-          <div className="h-100 p-5 bg-light rounded-3 shadow-sm">
+          <div className="h-100 p-5 bg-theme-secondary rounded-3 shadow-sm">
             <h2 className="fw-bold">Consultoría de IA</h2>
             <p className="mb-4">Asesoramos a organizaciones en la implementación de estrategias de inteligencia artificial, identificando oportunidades y elaborando hojas de ruta para la adopción de estas tecnologías.</p>
             <ul className="list-unstyled mb-4">
@@ -46,7 +46,7 @@ const ServicesSection = () => (
       {/* Desarrollo a Medida */}
       <div className="row g-4 mb-5">
         <div className="col-md-6 order-md-2">
-          <div className="h-100 p-5 bg-light rounded-3 shadow-sm">
+          <div className="h-100 p-5 bg-theme-secondary rounded-3 shadow-sm">
             <h2 className="fw-bold">Desarrollo a Medida</h2>
             <p className="mb-4">Creamos aplicaciones y sistemas personalizados que integran inteligencia artificial para resolver problemas específicos de tu negocio.</p>
             <ul className="list-unstyled mb-4">
@@ -73,7 +73,7 @@ const ServicesSection = () => (
       {/* Análisis de Datos */}
       <div className="row g-4 mb-5">
         <div className="col-md-6">
-          <div className="h-100 p-5 bg-light rounded-3 shadow-sm">
+          <div className="h-100 p-5 bg-theme-secondary rounded-3 shadow-sm">
             <h2 className="fw-bold">Análisis de Datos</h2>
             <p className="mb-4">Transformamos tus datos en insights accionables mediante técnicas avanzadas de análisis y visualización, ayudándote a tomar decisiones basadas en evidencia.</p>
             <ul className="list-unstyled mb-4">
@@ -100,7 +100,7 @@ const ServicesSection = () => (
       {/* Implementación de IA */}
       <div className="row g-4">
         <div className="col-md-6 order-md-2">
-          <div className="h-100 p-5 bg-light rounded-3 shadow-sm">
+          <div className="h-100 p-5 bg-theme-secondary rounded-3 shadow-sm">
             <h2 className="fw-bold">Implementación de IA para Empresas</h2>
             <p className="mb-4">Llevamos la IA a tu organización con soluciones llave en mano, integrando las tecnologías más avanzadas con tus procesos de negocio actuales.</p>
             <ul className="list-unstyled mb-4">

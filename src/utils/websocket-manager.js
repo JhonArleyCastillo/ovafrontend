@@ -56,7 +56,7 @@ export const WS_CONFIG = {
     },
     production: {
   primary: 'wss://www.api.ovaonline.tech/api/chat',
-  fallback: 'wss://www.api.ovaonline.tech/api/chat'
+  fallback: 'wss://www.api.ovaonline.tech/ws/chat'
     }
   }
 };
@@ -96,6 +96,7 @@ export class WebSocketManager {
   const httpProto = parsed.protocol === 'wss:' ? 'https:' : 'http:';
   const origin = `${httpProto}//${parsed.host}`;
   const healthUrl = `${origin}/chat/health`;
+  const apiHealthUrl = `${origin}/api/chat/health`;
   const statusUrl = `${origin}/status`;
       
       // Intentar primero endpoint específico de WS
@@ -104,7 +105,7 @@ export class WebSocketManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
       
-      let response = await fetch(healthUrl, {
+  const response = await fetch(healthUrl, {
         method: 'GET',
         signal: controller.signal,
         cache: 'no-cache'
@@ -116,8 +117,14 @@ export class WebSocketManager {
         Logger.info(this.componentName, `Servidor WS disponible en ${healthUrl}`);
         return true;
       } else {
-        // Intentar con /status como respaldo
-        Logger.warn(this.componentName, `WS health respondió ${response.status}. Probando ${statusUrl}`);
+        // Intentar con /api/chat/health y luego /status como respaldo
+        Logger.warn(this.componentName, `WS health respondió ${response.status}. Probando ${apiHealthUrl}`);
+        const resApi = await fetch(apiHealthUrl, { method: 'GET', cache: 'no-cache' });
+        if (resApi.ok) {
+          Logger.info(this.componentName, `Servidor WS disponible en ${apiHealthUrl}`);
+          return true;
+        }
+        Logger.warn(this.componentName, `API WS health respondió ${resApi.status}. Probando ${statusUrl}`);
         const res2 = await fetch(statusUrl, { method: 'GET', cache: 'no-cache' });
         if (res2.ok) {
           Logger.info(this.componentName, `Servidor HTTP disponible en ${statusUrl}`);
@@ -170,10 +177,15 @@ export class WebSocketManager {
       return null;
     }
 
-  // Construir candidatos de conexión: primary, fallback, y variante de path '/ws/chat'
-  const candidates = [this.endpoints.primary, this.endpoints.fallback];
-  const altPrimary = this.endpoints.primary.replace('/api/chat', '/ws/chat');
-  if (!candidates.includes(altPrimary)) candidates.push(altPrimary);
+  // Construir candidatos de conexión intentando ambas rutas '/api/chat' y '/ws/chat' pronto
+  const base = [this.endpoints.primary, this.endpoints.fallback];
+  const variants = base.flatMap(u => {
+    if (u.includes('/api/chat')) return [u, u.replace('/api/chat', '/ws/chat')];
+    if (u.includes('/ws/chat')) return [u, u.replace('/ws/chat', '/api/chat')];
+    return [u];
+  });
+  // Eliminar duplicados preservando orden
+  const candidates = Array.from(new Set(variants));
 
   // Determinar qué URL usar (rotación por intento)
   const index = Math.min(this.retryCount, candidates.length - 1);
