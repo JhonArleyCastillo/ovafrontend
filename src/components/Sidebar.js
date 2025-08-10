@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 import useDayNightTheme from '../hooks/useDayNightTheme';
 
@@ -144,7 +145,16 @@ const Sidebar = () => {
       </button>
 
       {/* Overlay para cerrar el menú en móvil */}
-      {isOpen && <div className="sidebar-overlay" onClick={() => setIsOpen(false)}></div>}
+      {isOpen && (
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsOpen(false)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setIsOpen(false)}
+          aria-label="Cerrar menú"
+        ></div>
+      )}
 
       {/* Sidebar Desktop */}
       <div className="sidebar sidebar-desktop">
@@ -185,3 +195,13 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+// PropTypes
+const SidebarLinksPropTypes = {
+  onLinkClick: PropTypes.func,
+  location: PropTypes.object.isRequired,
+  isMobile: PropTypes.bool
+};
+
+SidebarLinks.propTypes = SidebarLinksPropTypes;
+SidebarLinks.defaultProps = { onLinkClick: () => {}, isMobile: false };

@@ -85,16 +85,21 @@ const validateConfig = () => {
   const missing = required.filter(key => !config[key]);
   
   if (missing.length > 0) {
-    console.error(`❌ Configuración incompleta. Faltan: ${missing.join(', ')}`);
+    // eslint-disable-next-line no-console
+    console.error(`✖ Configuración incompleta. Faltan: ${missing.join(', ')}`);
     throw new Error(`Configuración incompleta: ${missing.join(', ')}`);
   }
   
+  // eslint-disable-next-line no-console
   console.info(`✅ Configuración cargada para entorno: ${currentEnv}`);
+  // eslint-disable-next-line no-console
   console.info(`📡 API Base URL: ${config.API_BASE_URL}`);
+  // eslint-disable-next-line no-console
   console.info(`🔌 WebSocket URL: ${config.WS_BASE_URL}`);
   
   if (config.DEBUG_ENABLED) {
-    console.info('🐛 Debug habilitado');
+  // eslint-disable-next-line no-console
+  console.info('🐛 Debug habilitado');
   }
 };
 

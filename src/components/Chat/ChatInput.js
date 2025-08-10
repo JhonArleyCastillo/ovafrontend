@@ -8,18 +8,16 @@ import Logger from '../../utils/debug-utils';
  * @param {Object} props - Propiedades del componente
  * @param {function} props.onSendMessage - Función para enviar mensaje
  * @param {function} props.onImageUpload - Función para subir imagen
- * @param {function} props.onSignLanguageUpload - Función para procesar lenguaje de señas
  * @param {function} props.onAudioRecord - Función para enviar audio grabado
  * @param {boolean} props.isConnected - Estado de la conexión
  * @param {boolean} props.isTyping - Indica si el bot está escribiendo
  */
-const ChatInput = ({ onSendMessage, onImageUpload, onSignLanguageUpload, onAudioRecord, isConnected, isTyping }) => {
+const ChatInput = ({ onSendMessage, onImageUpload, onAudioRecord, isConnected, isTyping }) => {
   const [inputMessage, setInputMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [audioPermissionGranted, setAudioPermissionGranted] = useState(false);
   
   const fileInputRef = useRef(null);
-  const signLanguageInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
@@ -134,15 +132,7 @@ const ChatInput = ({ onSendMessage, onImageUpload, onSignLanguageUpload, onAudio
         >
           <i className='bi bi-image'></i>
         </button>
-        <button
-          type='button'
-          className='btn btn-outline-success'
-          onClick={() => signLanguageInputRef.current?.click()}
-          disabled={isRecording}
-          title='Analizar lenguaje de señas'
-        >
-          <i className='bi bi-translate'></i>
-        </button>
+  {/* Botón de análisis de lenguaje de señas removido para simplificar el flujo */}
         <button
           type='button'
           className={`btn ${isRecording ? 'btn-danger' : 'btn-outline-secondary'}`}
@@ -167,13 +157,7 @@ const ChatInput = ({ onSendMessage, onImageUpload, onSignLanguageUpload, onAudio
           accept='image/*'
           className='d-none'
         />
-        <input
-          type='file'
-          ref={signLanguageInputRef}
-          onChange={(e) => e.target.files?.[0] && onSignLanguageUpload(e.target.files[0])}
-          accept='.jpg,.jpeg,.png,.webp,image/jpeg,image/jpg,image/png,image/webp'
-          className='d-none'
-        />
+  {/* Input oculto para lenguaje de señas removido */}
       </div>
       {isRecording && (
         <div className='text-center mt-2'>
@@ -189,7 +173,6 @@ const ChatInput = ({ onSendMessage, onImageUpload, onSignLanguageUpload, onAudio
 ChatInput.propTypes = {
   onSendMessage: PropTypes.func.isRequired,
   onImageUpload: PropTypes.func.isRequired,
-  onSignLanguageUpload: PropTypes.func,
   onAudioRecord: PropTypes.func,
   isConnected: PropTypes.bool.isRequired,
   isTyping: PropTypes.bool.isRequired
@@ -197,7 +180,6 @@ ChatInput.propTypes = {
 
 ChatInput.defaultProps = {
   onAudioRecord: () => {},
-  onSignLanguageUpload: () => {}
 };
 
 export default ChatInput;

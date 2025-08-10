@@ -24,7 +24,7 @@ export const formatImageAnalysisResult = (data) => {
         ).join('\n');
     }
               
-    return `Lenguaje de señas detectado: ${prediction} (confianza: ${confidence}%)${alternativasTexto}`;
+  return `Resultado: ${prediction} (confianza: ${confidence}%)${alternativasTexto}`;
   } catch (error) {
     Logger.error(COMPONENT_NAME, 'Error al formatear resultado de análisis', error);
     return 'Error al procesar el resultado del análisis';
@@ -116,11 +116,13 @@ export const formatMessage = (data) => {
   return data.text || data.message || 'Mensaje sin contenido';
 };
 
-export default {
+const ChatUtils = {
   formatImageAnalysisResult,
   addMessage,
   addErrorMessage,
   readImageAsBase64,
   parseTextCommand,
   formatMessage
-}; 
+};
+
+export default ChatUtils; 

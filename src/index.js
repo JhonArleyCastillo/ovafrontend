@@ -13,5 +13,6 @@ root.render(
 
 // Medición de rendimiento optimizada para producción
 if (process.env.NODE_ENV === 'development') {
+  // eslint-disable-next-line no-console
   reportWebVitals(console.log);
 }

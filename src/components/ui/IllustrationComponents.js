@@ -14,6 +14,5 @@ export const CapabilitiesIcons = () => (
   </div>
 );
 
-export default {
-  CapabilitiesIcons
-};
+const UIIllustrations = { CapabilitiesIcons };
+export default UIIllustrations;

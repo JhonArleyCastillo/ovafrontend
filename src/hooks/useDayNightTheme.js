@@ -12,6 +12,7 @@ const useDayNightTheme = () => {
    * Función principal day_night que determina si es de día o noche
    * @returns {string} 'light' para día, 'dark' para noche
    */
+  // eslint-disable-next-line camelcase
   const day_night = () => {
     const now = new Date();
     const hour = now.getHours();
@@ -92,6 +93,7 @@ const useDayNightTheme = () => {
   };
 
   // Effect para inicializar el tema
+  // Intentional: initialize once on mount
   useEffect(() => {
     // Comprobar preferencias guardadas
     const savedTheme = localStorage.getItem('theme-preference');
@@ -106,9 +108,11 @@ const useDayNightTheme = () => {
       setIsAutoMode(true);
       updateAutoTheme();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Effect para actualizar tema automáticamente cada minuto
+  // Intentional: depend only on isAutoMode to tick every minuto
   useEffect(() => {
     if (!isAutoMode) return;
 
@@ -117,9 +121,11 @@ const useDayNightTheme = () => {
     }, 60000); // Verificar cada minuto
 
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoMode]);
 
   // Effect para escuchar cambios de visibilidad de página
+  // Intentional: depend only on isAutoMode for visibility updates
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden && isAutoMode) {
@@ -129,13 +135,15 @@ const useDayNightTheme = () => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAutoMode]);
 
   return {
     theme,
     setTheme: setManualTheme,
     isAutoMode,
-    day_night, // Exportar la función principal
+  // eslint-disable-next-line camelcase
+  day_night, // Exportar la función principal
     getThemeInfo,
     updateAutoTheme
   };

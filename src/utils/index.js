@@ -7,7 +7,9 @@ export * from './debug-utils';
 export { Logger };
 export * from './media-utils';
 
-export default {
+const Utils = {
   Logger,
-  ...require('./media-utils')
-}; 
+  // Nota: no incluimos require dinámico para evitar issues con bundlers
+};
+
+export default Utils; 

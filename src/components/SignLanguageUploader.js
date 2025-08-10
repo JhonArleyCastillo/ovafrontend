@@ -11,7 +11,7 @@ const SignLanguageUploader = () => {
   // Constantes para validación de archivos
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB en bytes
   const ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+  // const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
@@ -20,7 +20,7 @@ const SignLanguageUploader = () => {
     if (file) {
       try {
         // Validar y optimizar la imagen con la función mejorada
-        const { blob: optimizedImage, tooBig, invalidFormat, formatError } = await optimizeImage(file, {
+  const { blob: optimizedImage, tooBig, invalidFormat } = await optimizeImage(file, {
           maxWidth: 1200,
           maxHeight: 900,
           quality: 0.8,

@@ -2,15 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import Logger from '../utils/debug-utils';
 import ApiService from '../services/api';
-import { API_ROUTES, WS_ROUTES } from '../config/api.routes';
+import { WS_ROUTES } from '../config/api.routes';
 import { formatImageAnalysisResult } from '../services/chatUtils';
 import { ErrorMessage } from './common';
 import ChatHeader from './Chat/ChatHeader';
 import MessageList from './Chat/MessageList';
 import ChatInput from './Chat/ChatInput';
 import { COMPONENT_NAMES } from '../config/constants';
-import { processIncomingMessage, handleMessageActions, createTextMessage, createImageMessage, createAudioMessage, createTypingMessage } from '../utils/message-utils';
-import { playAudio, optimizeImage } from '../utils/media-utils';
+import { processIncomingMessage, handleMessageActions, createTextMessage, createAudioMessage } from '../utils/message-utils';
+import { playAudio } from '../utils/media-utils';
 import { useNavigate } from 'react-router-dom';
 
 const COMPONENT_NAME = COMPONENT_NAMES.CHAT;
@@ -57,19 +57,25 @@ const PrivacyTermsModal = ({ onAccept, onDecline }) => (
   </div>
 );
 
+PrivacyTermsModal.propTypes = {
+  onAccept: PropTypes.func.isRequired,
+  onDecline: PropTypes.func.isRequired
+};
+
 const Chat = ({ onImageResult }) => {
   // Estado
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState(null);
-  const [clientId, setClientId] = useState(null);
+  // Eliminado clientId no usado
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
   const [showPrivacyModal, setShowPrivacyModal] = useState(true);
   
   // Referencias
   const ws = useRef(null);
   const reconnectTimeoutRef = useRef(null);
+  const initWebSocketRef = useRef(null);
   const navigate = useNavigate();
 
   // Comprobar si ya se ha aceptado la política de privacidad
@@ -77,7 +83,7 @@ const Chat = ({ onImageResult }) => {
     if (localStorage.getItem('chat_privacy_accepted') === 'true') {
       setShowPrivacyModal(false);
     }
-  }, []);
+  }, [initWebSocketRef]);
 
   // Manejadores para el modal de privacidad
   const handleAcceptPrivacy = () => {
@@ -110,7 +116,6 @@ const Chat = ({ onImageResult }) => {
       const message = errorInput?.message || errorInput?.toString() || 'Error desconocido';
       errorText = `Error: ${message}`;
     }
-    
     addMessage({
       text: errorText,
       isUser: false,
@@ -166,8 +171,7 @@ const Chat = ({ onImageResult }) => {
           setIsTyping(false);
           break;
 
-        case 'image':
-        case 'sign_language':
+  case 'image':
           // Ejecutar acciones asociadas al mensaje
           handleMessageActions(processedMessage);
           // Agregar al chat
@@ -188,9 +192,6 @@ const Chat = ({ onImageResult }) => {
           
         case 'connection':
           if (processedMessage.status === 'connected') {
-            if (processedMessage.clientId) {
-              setClientId(processedMessage.clientId);
-            }
             setIsConnected(true);
             setConnectionError(null);
           } else {
@@ -219,8 +220,9 @@ const Chat = ({ onImageResult }) => {
 
   /**
    * Manejar cierre de conexión WebSocket
+   * Declarado antes de initWebSocket para evitar no-use-before-define
    */
-  const handleWebSocketClose = () => {
+  const handleWebSocketClose = useCallback(() => {
     Logger.warn(COMPONENT_NAME, 'Conexión WebSocket cerrada');
     setIsConnected(false);
     setConnectionError('Conexión perdida. Intentando reconectar...');
@@ -230,9 +232,11 @@ const Chat = ({ onImageResult }) => {
     }
 
     reconnectTimeoutRef.current = setTimeout(() => {
-      initWebSocket();
+      if (initWebSocketRef.current) {
+        initWebSocketRef.current();
+      }
     }, 5000);
-  };
+  }, []);
 
   /**
    * Manejar error de conexión WebSocket
@@ -283,7 +287,12 @@ const Chat = ({ onImageResult }) => {
         setConnectionError('No se pudo establecer conexión con el servidor');
       }
     }
-  }, [handleWebSocketMessage]);
+  }, [handleWebSocketMessage, handleWebSocketClose]);
+
+  // Mantener una referencia invocable a initWebSocket para usarla desde otros callbacks sin dependencias cíclicas
+  useEffect(() => {
+    initWebSocketRef.current = initWebSocket;
+  }, [initWebSocket]);
 
   /**
    * Inicializar componente al montar
@@ -453,8 +462,8 @@ const Chat = ({ onImageResult }) => {
       // Indicar que estamos procesando
       setIsTyping(true);
 
-      // Crear mensaje en formato estandarizado
-      const standardMessage = createImageMessage(base64Image.split(',')[1], 'Análisis de imagen');
+  // Crear mensaje en formato estandarizado (no se envía por WS en este flujo)
+  // const standardMessage = createImageMessage(base64Image.split(',')[1], 'Análisis de imagen');
       
       // Para imágenes, usamos el endpoint REST en lugar de WebSocket
       const { success, data, error } = await ApiService.processImage(file);
@@ -484,131 +493,7 @@ const Chat = ({ onImageResult }) => {
     }
   }, [addErrorMessage, addMessage, onImageResult, isConnected]);
 
-  /**
-   * Manejar carga de imagen de lenguaje de señas
-   */
-  const handleSignLanguageUpload = useCallback(async (file) => {
-    Logger.debug(COMPONENT_NAME, 'Evento de carga de imagen de lenguaje de señas activado');
-
-    if (!file) {
-      Logger.debug(COMPONENT_NAME, 'No se seleccionó ningún archivo');
-      return;
-    }
-
-    try {
-      // Validación y optimización de la imagen en un solo paso
-      const ALLOWED_FORMATS = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB en bytes
-      
-      // Intentar optimizar la imagen y validar formato al mismo tiempo
-      const { blob: optimizedImage, tooBig, invalidFormat, formatError } = await optimizeImage(file, {
-        maxWidth: 1200,
-        maxHeight: 900,
-        quality: 0.8,
-        maxSizeBytes: MAX_FILE_SIZE,
-        allowedFormats: ALLOWED_FORMATS
-      });
-      
-      // Si el formato no está permitido, mostrar mensaje de error específico
-      if (invalidFormat) {
-        Logger.debug(COMPONENT_NAME, `Formato no válido: ${file.type}`);
-        addErrorMessage(new Error('La extensión de la imagen no es permitida'));
-        return;
-      }
-      
-      // Si la imagen sigue siendo demasiado grande después de optimizar
-      if (tooBig) {
-        Logger.debug(COMPONENT_NAME, 'La imagen sigue siendo demasiado grande después de optimizar');
-        addErrorMessage(new Error('La imagen es demasiado grande y no se pudo reducir por debajo de 5MB'));
-        return;
-      }
-      
-      // Reemplazar el archivo original con la versión optimizada
-      file = optimizedImage;
-      Logger.debug(COMPONENT_NAME, 'Archivo de lenguaje de señas procesado', file.size);
-
-      // Leer la imagen como base64
-      const reader = new FileReader();
-      const base64ImagePromise = new Promise((resolve, reject) => {
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(new Error('Error al leer la imagen'));
-        reader.readAsDataURL(file);
-      });
-      
-      const base64Image = await base64ImagePromise;
-
-      // Mostrar imagen en el chat como mensaje del usuario
-      addMessage({
-        text: 'Imagen de lenguaje de señas enviada',
-        isUser: true,
-        image: base64Image,
-        type: 'sign_language',
-        timestamp: new Date().toISOString()
-      });
-      
-      // Verificar si hay conexión activa
-      if (!isConnected) {
-        // Agregar mensaje de error cuando se intenta enviar sin conexión
-        addMessage({
-          text: 'No se pudo procesar el lenguaje de señas: error de conexión',
-          isUser: false,
-          type: 'error',
-          timestamp: new Date().toISOString()
-        });
-        return;
-      }
-      
-      // Indicar que estamos procesando
-      setIsTyping(true);
-
-      // Para imágenes, usamos el endpoint REST
-      try {
-        const { success, data, error } = await ApiService.analyzeSignLanguageImage(file);
-
-        if (success && data) {
-          const pred = data.prediction;
-          const conf = data.confidence;
-          const isValid = pred && typeof pred === 'string' && conf > 0;
-
-          if (isValid) {
-            addMessage({
-              text: `Interpretación: ${pred} (${conf}%)`,
-              isUser: false,
-              type: 'text',
-              timestamp: new Date().toISOString()
-            });
-            Logger.info(COMPONENT_NAME, 'Lenguaje de señas procesado exitosamente', data);
-            handleSendMessage(pred, false);
-          } else {
-            addMessage({
-              text: 'Interpretación: No se pudo interpretar el gesto',
-              isUser: false,
-              type: 'text',
-              timestamp: new Date().toISOString()
-            });
-          }
-        } else {
-          // Mostrar mensaje amigable en caso de fallo del servicio externo
-          addMessage({
-            text: '🔧 El servicio de IA avanzada está temporalmente no disponible. Puedo ayudarte con consultas básicas mientras tanto.',
-            isUser: false,
-            type: 'text',
-            timestamp: new Date().toISOString()
-          });
-          if (error) throw new Error(error?.message || 'Error al procesar el lenguaje de señas');
-        }
-      } catch (error) {
-        Logger.error(COMPONENT_NAME, 'Error al procesar la imagen de lenguaje de señas', error);
-        addErrorMessage(error);
-      } finally {
-        setIsTyping(false);
-      }
-    } catch (error) {
-      Logger.error(COMPONENT_NAME, 'Error al procesar la imagen', error);
-      addErrorMessage(error);
-      setIsTyping(false);
-    }
-  }, [addErrorMessage, addMessage, handleSendMessage, isConnected]);
+  // Flujo específico de lenguaje de señas removido para simplificar la salida en producción
 
   /**
    * Alternar reproducción automática de audio
@@ -666,7 +551,6 @@ const Chat = ({ onImageResult }) => {
           <ChatInput 
             onSendMessage={handleSendMessage}
             onImageUpload={handleImageUpload}
-            onSignLanguageUpload={handleSignLanguageUpload}
             onAudioRecord={handleAudioRecord}
             isConnected={isConnected}
             isTyping={isTyping}

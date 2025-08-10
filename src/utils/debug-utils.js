@@ -2,6 +2,7 @@
  * Utilidades de depuración para la aplicación
  * Proporciona herramientas para facilitar la depuración de componentes React
  */
+/* eslint-disable no-console */
 // Determina si estamos en modo de desarrollo
 const isDev = process.env.NODE_ENV !== 'production';
 /**

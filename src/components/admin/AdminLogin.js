@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import AuthService from '../../services/auth.service';
-import NetworkUtils from '../../utils/network-utils';
 import { API_BASE_URL, API_BACKUP_URL } from '../../config/api.routes';
 import Logger from '../../utils/debug-utils';
 

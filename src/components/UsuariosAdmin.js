@@ -24,6 +24,7 @@ const UsuariosAdmin = () => {
       setUsuarios(data);
       setError(null);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Error al cargar usuarios:', err);
       setError('No se pudieron cargar los usuarios. ' + err.message);
     } finally {

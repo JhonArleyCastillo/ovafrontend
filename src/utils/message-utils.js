@@ -30,7 +30,8 @@ export const createTextMessage = (text, isUser = true) => {
   return {
     type: MESSAGE_TYPES.TEXT,
     text: text,
-    is_user: isUser,
+  // eslint-disable-next-line camelcase
+  is_user: isUser,
     timestamp: new Date().toISOString()
   };
 };
@@ -43,7 +44,8 @@ export const createTextMessage = (text, isUser = true) => {
 export const createTypingMessage = (isTyping = true) => {
   return {
     type: MESSAGE_TYPES.TYPING,
-    is_typing: isTyping,
+  // eslint-disable-next-line camelcase
+  is_typing: isTyping,
     timestamp: new Date().toISOString()
   };
 };
@@ -59,7 +61,8 @@ export const createImageMessage = (imageBase64, text = '') => {
     type: MESSAGE_TYPES.IMAGE,
     image: imageBase64,
     text: text,
-    is_user: true,
+  // eslint-disable-next-line camelcase
+  is_user: true,
     timestamp: new Date().toISOString()
   };
 };
@@ -75,7 +78,8 @@ export const createAudioMessage = (audioBase64, text = '') => {
     type: MESSAGE_TYPES.AUDIO,
     audio: audioBase64,
     text: text,
-    is_user: true,
+  // eslint-disable-next-line camelcase
+  is_user: true,
     timestamp: new Date().toISOString()
   };
 };
@@ -105,6 +109,7 @@ export const processIncomingMessage = (message) => {
         return {
           id: message.id,
           text: message.text,
+          // eslint-disable-next-line camelcase
           isUser: message.is_user || false,
           timestamp: message.timestamp,
           type: 'text'
@@ -114,6 +119,7 @@ export const processIncomingMessage = (message) => {
         return {
           id: message.id,
           text: message.text || 'Mensaje de audio recibido',
+          // eslint-disable-next-line camelcase
           isUser: message.is_user || false,
           audio: message.audio,
           timestamp: message.timestamp,
@@ -124,6 +130,7 @@ export const processIncomingMessage = (message) => {
         return {
           id: message.id,
           text: message.text || 'Imagen recibida',
+          // eslint-disable-next-line camelcase
           isUser: message.is_user || false,
           image: message.image,
           objects: message.objects,
@@ -135,6 +142,7 @@ export const processIncomingMessage = (message) => {
         return {
           id: message.id,
           text: message.text || 'Análisis de lenguaje de señas',
+          // eslint-disable-next-line camelcase
           isUser: message.is_user || false,
           image: message.image,
           confidence: message.confidence,
@@ -163,6 +171,7 @@ export const processIncomingMessage = (message) => {
         return {
           type: 'connection',
           status: message.type,
+          // eslint-disable-next-line camelcase
           clientId: message.client_id,
           text: `Conexión ${message.type === 'connected' ? 'establecida' : 'cerrada'}`
         };
@@ -217,7 +226,7 @@ export const handleMessageActions = (message) => {
   }
 };
 
-export default {
+const MessageUtils = {
   MESSAGE_TYPES,
   createTextMessage,
   createTypingMessage,
@@ -226,3 +235,5 @@ export default {
   processIncomingMessage,
   handleMessageActions
 };
+
+export default MessageUtils;

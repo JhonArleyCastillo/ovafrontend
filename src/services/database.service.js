@@ -1,5 +1,5 @@
 import Logger from '../utils/debug-utils';
-import { API_BASE_URL, API_ROUTES, API_TIMEOUT } from '../config/api.routes';
+import { API_ROUTES, API_TIMEOUT } from '../config/api.routes';
 import { COMPONENT_NAMES } from '../config/constants';
 import AuthService from './auth.service';
 

@@ -51,8 +51,11 @@ export const WS_ROUTES = {
 // Rutas REST
 export const REST_ROUTES = {
   STATUS: `${API_BASE_URL}/status`,
+  // Rutas de imagen
+  PROCESS_IMAGE: `${API_BASE_URL}/api/image/process-image`,
+  ANALYZE_SIGN_LANGUAGE: `${API_BASE_URL}/api/image/analyze-sign-language`,
+  // Alias de compatibilidad para Space ASL si se usa
   ASL_PREDICT_SPACE: `${API_BASE_URL}/api/image/asl/predict_space`,
-  CHAT: `${API_BASE_URL}/api/image/chat`,
   // Rutas de autenticación
   AUTH_LOGIN: `${API_BASE_URL}/api/auth/token`,
   AUTH_LOGOUT: `${API_BASE_URL}/api/auth/logout`,

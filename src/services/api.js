@@ -40,7 +40,6 @@ class ApiService {
       return data && (data.status === 'connected' || data.status === 'ok' || data.status === 'online');
     } catch (error) {
       Logger.error(this.COMPONENT_NAME, `Error al verificar conexión: ${error.message}`, error);
-      console.error('Error completo:', error);
       return false;
     }
   }
@@ -245,7 +244,6 @@ class ApiService {
       return wsInstance;
     } catch (error) {
       Logger.error(this.COMPONENT_NAME, `Error al crear WebSocket: ${error.message}`, error);
-      console.error('Error completo al crear WebSocket:', error);
       throw error;
     }
   }
@@ -302,20 +300,7 @@ class ApiService {
     );
   }
 
-  /**
-   * Analiza una imagen de lenguaje de señas
-   * @param {string|Blob|File} image - Imagen para analizar (base64 o Blob/File)
-   * @returns {Promise<Object>} - Resultados del análisis
-   */
-  static async analyzeSignLanguageImage(image) {
-    const endpoint = API_ROUTES.ASL_PREDICT_SPACE;
-    return this._processImageBase(
-      image, 
-      endpoint, 
-      'Enviando imagen al servidor', 
-      'Error al analizar imagen'
-    );
-  }
+  // Flujo separado para lenguaje de señas eliminado: usamos solo processImage
 
   /**
    * Procesa una imagen genérica
@@ -323,7 +308,7 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
   static async processImage(imageInput) {
-    const endpoint = API_ROUTES.ASL_PREDICT_SPACE;
+  const endpoint = API_ROUTES.PROCESS_IMAGE;
     return this._processImageBase(
       imageInput, 
       endpoint, 

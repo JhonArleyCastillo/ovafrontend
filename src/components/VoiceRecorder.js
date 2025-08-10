@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Logger from '../utils/debug-utils';
-import { getAudioStream, createAudioRecorder, playAudio } from '../utils/media-utils';
+import { getAudioStream, createAudioRecorder } from '../utils/media-utils';
 import ApiService from '../services/api';
 import { COMPONENT_NAMES } from '../config/constants';
 import { ConnectionStatus, ErrorMessage } from './common';
-import { processIncomingMessage, handleMessageActions } from '../utils/message-utils';
+// import { processIncomingMessage, handleMessageActions } from '../utils/message-utils';
 
 const COMPONENT_NAME = COMPONENT_NAMES.VOICE_RECORDER;
 
@@ -13,7 +13,7 @@ const VoiceRecorder = () => {
   const [audioUrl, setAudioUrl] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
-  const [transcript, setTranscript] = useState('');
+  const [transcript] = useState('');
   
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
@@ -87,46 +87,32 @@ const VoiceRecorder = () => {
     };
   }, []);
 
-  const handleWebSocketMessage = (event) => {
-    try {
-      // Procesar el mensaje recibido en formato estandarizado
-      const data = JSON.parse(event.data);
-      const message = processIncomingMessage(data);
-      
-      // Manejar según el tipo de mensaje
-      switch (message.type) {
-        case 'text':
-          setTranscript(message.text);
-          break;
-          
-        case 'audio':
-          // Si hay texto, mostrarlo
-          if (message.text) {
-            setTranscript(message.text);
-          }
-          
-          // Reproducir el audio automáticamente
-          if (message.audio) {
-            handleMessageActions(message);
-          }
-          break;
-          
-        case 'error':
-          Logger.error(COMPONENT_NAME, 'Error del servidor', message);
-          setError(message.text);
-          break;
-          
-        case 'connection':
-          setIsConnected(message.status === 'connected');
-          break;
-          
-        default:
-          Logger.warn(COMPONENT_NAME, 'Tipo de mensaje no manejado', message);
-      }
-    } catch (error) {
-      Logger.error(COMPONENT_NAME, 'Error al procesar mensaje WebSocket', error);
-    }
-  };
+  // const handleWebSocketMessage = (event) => {
+  //   try {
+  //     const data = JSON.parse(event.data);
+  //     const message = processIncomingMessage(data);
+  //     switch (message.type) {
+  //       case 'text':
+  //         setTranscript(message.text);
+  //         break;
+  //       case 'audio':
+  //         if (message.text) setTranscript(message.text);
+  //         if (message.audio) handleMessageActions(message);
+  //         break;
+  //       case 'error':
+  //         Logger.error(COMPONENT_NAME, 'Error del servidor', message);
+  //         setError(message.text);
+  //         break;
+  //       case 'connection':
+  //         setIsConnected(message.status === 'connected');
+  //         break;
+  //       default:
+  //         Logger.warn(COMPONENT_NAME, 'Tipo de mensaje no manejado', message);
+  //     }
+  //   } catch (error) {
+  //     Logger.error(COMPONENT_NAME, 'Error al procesar mensaje WebSocket', error);
+  //   }
+  // };
 
   const stopMediaStream = () => {
     if (streamRef.current) {

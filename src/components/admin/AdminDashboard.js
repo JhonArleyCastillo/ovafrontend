@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import Logger from '../../utils/debug-utils';
 import AuthService from '../../services/auth.service';
 
 /**
@@ -28,7 +29,7 @@ function AdminDashboard() {
       await AuthService.logout();
       navigate('/admin/login');
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
+      Logger.error('AdminDashboard', 'Error al cerrar sesión:', error);
     }
   };
 
@@ -47,17 +48,17 @@ function AdminDashboard() {
       {/* Barra de navegación superior */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
         <div className="container-fluid">
-          <a className="navbar-brand" href="/admin/dashboard">Panel de Administración</a>
+          <Link className="navbar-brand" to="/admin/dashboard">Panel de Administración</Link>
           <div className="navbar-nav ms-auto">
             <div className="nav-item dropdown">
-              <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              <button className="nav-link dropdown-toggle btn btn-link p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i className="bi bi-person-circle me-1"></i>
                 {admin.sub || 'Administrador'}
-              </a>
+              </button>
               <ul className="dropdown-menu dropdown-menu-end">
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); }}>Mi perfil</a></li>
+                <li><button className="dropdown-item" type="button" onClick={(e) => { e.preventDefault(); }}>Mi perfil</button></li>
                 <li><hr className="dropdown-divider" /></li>
-                <li><a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }}>Cerrar sesión</a></li>
+                <li><button className="dropdown-item" type="button" onClick={(e) => { e.preventDefault(); handleLogout(); }}>Cerrar sesión</button></li>
               </ul>
             </div>
           </div>
@@ -70,22 +71,22 @@ function AdminDashboard() {
           {/* Sidebar */}
           <div className="col-md-3 col-lg-2 d-md-block bg-white shadow-sm sidebar p-0">
             <div className="list-group list-group-flush">
-              <a href="#" className="list-group-item list-group-item-action active py-3" aria-current="true">
+              <button type="button" className="list-group-item list-group-item-action active py-3">
                 <i className="bi bi-speedometer2 me-2"></i>
                 Dashboard
-              </a>
-              <a href="#" className="list-group-item list-group-item-action py-3">
+              </button>
+              <button type="button" className="list-group-item list-group-item-action py-3">
                 <i className="bi bi-people me-2"></i>
                 Usuarios
-              </a>
-              <a href="#" className="list-group-item list-group-item-action py-3">
+              </button>
+              <button type="button" className="list-group-item list-group-item-action py-3">
                 <i className="bi bi-gear me-2"></i>
                 Configuración
-              </a>
-              <a href="#" className="list-group-item list-group-item-action py-3">
+              </button>
+              <button type="button" className="list-group-item list-group-item-action py-3">
                 <i className="bi bi-bar-chart me-2"></i>
                 Estadísticas
-              </a>
+              </button>
             </div>
           </div>
 

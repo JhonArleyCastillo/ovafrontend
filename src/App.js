@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
 import { ovalogo } from './images'; // Importar el logo de OVA desde el índice de imágenes
@@ -11,7 +11,7 @@ import ServicesSection from './components/ServicesSection';
 import Diagnostics from './components/Diagnostics';
 import DatabaseService from './services/database.service';
 import useDayNightTheme from './hooks/useDayNightTheme';
-import { Outlet } from 'react-router-dom';
+// Outlet import consolidado arriba
 
 // Componentes para las diferentes rutas
 const HomePage = () => (
@@ -26,7 +26,7 @@ const HomePage = () => (
           <div className="card-body">
             <h2>Transformando la interacción digital</h2>
             <p className="fs-5">OVA es una plataforma de asistencia virtual avanzada que combina tecnologías de procesamiento de lenguaje natural, reconocimiento de voz y análisis de imágenes para ofrecer una experiencia interactiva única.</p>
-            <a href="/about" className="btn btn-primary mt-2">Conozca más sobre nosotros</a>
+            <Link to="/about" className="btn btn-primary mt-2">Conozca más sobre nosotros</Link>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ const HomePage = () => (
           <div className="card-body">
             <h5 className="card-title">Educación</h5>
             <p className="card-text">Facilitamos el aprendizaje mediante asistentes virtuales personalizados para estudiantes y profesores.</p>
-            <a href="/services" className="btn btn-outline-primary btn-sm">Más información</a>
+            <Link to="/services" className="btn btn-outline-primary btn-sm">Más información</Link>
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ const HomePage = () => (
           <div className="card-body">
             <h5 className="card-title">Atención al Cliente</h5>
             <p className="card-text">Mejora la experiencia de tus clientes con respuestas rápidas y precisas a sus consultas.</p>
-            <a href="/services" className="btn btn-outline-primary btn-sm">Más información</a>
+            <Link to="/services" className="btn btn-outline-primary btn-sm">Más información</Link>
           </div>
         </div>
       </div>
@@ -103,7 +103,7 @@ const HomePage = () => (
           <div className="card-body py-4">
             <h4>¿Listo para probar nuestro asistente inteligente?</h4>
             <p>Accede a nuestro chat y descubre el potencial de OVA</p>
-            <a href="/chat" className="btn btn-light">Ir al Chat</a>
+            <Link to="/chat" className="btn btn-light">Ir al Chat</Link>
           </div>
         </div>
       </div>
@@ -210,6 +210,7 @@ const ContactPage = () => {
         setErrors({ nombre:'', apellido:'', asunto:'', message:'', contactInfo:'' });
       })
       .catch(err => {
+        // eslint-disable-next-line no-console
         console.error(err);
         // Mostrar error general
         alert(err.message || 'Error al enviar el mensaje');
@@ -370,11 +371,7 @@ const ContactPage = () => {
   );
 };
 
-const ChatPage = () => (
-  <div className="flex-grow-1 d-flex flex-column overflow-hidden">
-    <Chat />
-  </div>
-);
+// ChatPage eliminado: no se utiliza
 
 // Layout principal con Sidebar
 const MainLayout = () => (
@@ -388,7 +385,8 @@ const MainLayout = () => (
 
 function App() {
   // Inicializar el tema día/noche automático
-  const { theme, setTheme } = useDayNightTheme();
+  // Ejecuta el hook por sus efectos (clase en <html>); no necesitamos sus valores aquí
+  useDayNightTheme();
   const [messages, setMessages] = useState([]);  // Control global de mensajes
   const wsRef = useRef(null);
   const reconnectTimeout = useRef(null);
@@ -396,7 +394,7 @@ function App() {
   const isDev = process.env.NODE_ENV !== 'production';
 
   // Conexión y reconexión controlada
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  /* eslint-disable no-console */
   const connectWebSocket = useCallback(() => {
     if (!isDev) {
       // eslint-disable-next-line no-console
@@ -404,8 +402,8 @@ function App() {
       return;
     }
     wsRef.current = new WebSocket('ws://localhost:8000/api/chat');
-    // eslint-disable-next-line no-console
-    console.log('🔗 Intentando conectar WebSocket (DEV local)...');
+  // eslint-disable-next-line no-console
+  console.log('🔗 Intentando conectar WebSocket (DEV local)...');
 
     wsRef.current.onopen = () => {
       // eslint-disable-next-line no-console
@@ -418,6 +416,7 @@ function App() {
         const data = JSON.parse(event.data);
         setMessages(prev => [...prev, data]);
       } catch (e) {
+  // eslint-disable-next-line no-console
         console.warn('Mensaje no JSON:', event.data);
       }
     };
@@ -436,13 +435,14 @@ function App() {
       console.error('❌ WebSocket error:', e);
       wsRef.current.close();
     };
-  }, []);
+  }, [isDev]);
+  /* eslint-enable no-console */
 
   useEffect(() => {
     if (isDev) connectWebSocket();
     return () => {
-      // eslint-disable-next-line no-console
-      console.log('🧹 Limpiando WebSocket al desmontar');
+  // eslint-disable-next-line no-console
+  console.log('🧹 Limpiando WebSocket al desmontar');
       if (wsRef.current) wsRef.current.close();
       if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
     };

@@ -169,8 +169,8 @@ class NetworkUtils {
     }
     
     try {
-      const response = await fetch(url, { method: 'HEAD' });
-      return { valid: true };
+  await fetch(url, { method: 'HEAD' });
+  return { valid: true };
     } catch (error) {
       // Los errores de certificado generalmente tienen mensajes específicos
       const isCertificateError = error.message.includes('certificate') || 
@@ -241,13 +241,15 @@ export const findBestAvailableServer = async (serverUrls, timeout = 5000) => {
   const validServerUrls = serverUrls.filter(url => {
     // Evitar URLs HTTPS que usen IP directamente (causará error de certificado)
     if (url.startsWith('https://') && /^https:\/\/\d+\.\d+\.\d+\.\d+/.test(url)) {
+      // eslint-disable-next-line no-console
       console.warn(`Omitiendo URL inválida: ${url} - No se puede usar HTTPS con IP directa`);
       return false;
     }
     
     // En producción, filtrar URLs HTTP que no sean localhost
     if (isProduction && url.startsWith('http:') && !url.includes('localhost')) {
-      console.warn(`Omitiendo URL insegura en producción: ${url} - Se requiere HTTPS`);
+  // eslint-disable-next-line no-console
+  console.warn(`Omitiendo URL insegura en producción: ${url} - Se requiere HTTPS`);
       return false;
     }
     
@@ -266,7 +268,8 @@ export const findBestAvailableServer = async (serverUrls, timeout = 5000) => {
       if (!a.startsWith('https:') && b.startsWith('https:')) return 1;
       return 0;
     });
-      console.info('URLs ordenadas por prioridad de seguridad:', validServerUrls);
+  // eslint-disable-next-line no-console
+  console.info('URLs ordenadas por prioridad de seguridad:', validServerUrls);
   }
 
   return NetworkUtils.findBestAvailableServer(validServerUrls, timeout);
