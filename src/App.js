@@ -1,8 +1,23 @@
+/*
+App.js - Componente principal de la aplicación React
+
+Este es el corazón de la aplicación React que maneja:
+- Enrutamiento principal (Home, Chat, Admin, etc.)
+- Layout general con sidebar
+- Estados globales de tema y autenticación
+- Configuración de rutas públicas y privadas
+
+Como desarrollador fullstack, este archivo es el "entry point" donde:
+- Se configura React Router para navegación
+- Se establecen los temas y layouts globales
+- Se conectan todos los componentes principales
+*/
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import Chat from './components/Chat';
-import { ovalogo } from './images'; // Importar el logo de OVA desde el índice de imágenes
+import { ovalogo } from './images'; // Logo principal de OVA
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import PrivateRoute from './components/admin/PrivateRoute';
@@ -11,15 +26,14 @@ import ServicesSection from './components/ServicesSection';
 import Diagnostics from './components/Diagnostics';
 import DatabaseService from './services/database.service';
 import useDayNightTheme from './hooks/useDayNightTheme';
-// Outlet import consolidado arriba
 
-// Componentes para las diferentes rutas
+// Componente de página principal - lo que ve el usuario al entrar
 const HomePage = () => (
   <div className="container p-4">
     <h1>Bienvenido a HelpOVA</h1>
     <p className="lead">Asistente Inteligente Multimodal - Su socio en soluciones de IA</p>
     
-    {/* Hero section con descripción principal */}
+    {/* Sección hero con descripción principal y logo */}
     <div className="row mb-5">
       <div className="col-md-8">
   <div className="card border-0 bg-theme-secondary">
@@ -35,7 +49,7 @@ const HomePage = () => (
       </div>
     </div>
     
-    {/* Sección de características */}
+    {/* Sección de características principales */}
     <h3 className="mb-4">¿Qué hace único a OVA?</h3>
     <div className="row mb-5">
       <div className="col-md-4 mb-3">

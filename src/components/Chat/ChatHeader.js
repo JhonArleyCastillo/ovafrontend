@@ -11,18 +11,22 @@ import { ConnectionStatus } from '../common';
  * @param {function} props.onToggleAutoPlayAudio - Función para alternar la reproducción automática
  */
 const ChatHeader = ({ 
-  title = 'Chat Inteligente', 
+  title = 'Chat Inteligente ASL', 
   isConnected, 
   autoPlayAudio = true, 
-  onToggleAutoPlayAudio 
+  onToggleAutoPlayAudio
 }) => {
   return (
     <div className="d-flex justify-content-between align-items-center">
       <div className="d-flex align-items-center">
-        <h5 className="mb-0 me-3">{title}</h5>
+        <h5 className="mb-0 me-3">
+          <i className="bi bi-translate me-2"></i>
+          {title}
+        </h5>
         <ConnectionStatus isConnected={isConnected} />
       </div>
       
+      {/* Toggle para audio automático */}
       {onToggleAutoPlayAudio && (
         <div className="form-check form-switch">
           <input

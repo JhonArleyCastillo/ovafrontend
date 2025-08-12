@@ -21,7 +21,7 @@ class ApiService {
     Logger.debug(this.COMPONENT_NAME, `Verificando estado del servidor en: ${statusUrl}`);
         
     try {
-      Logger.info(this.COMPONENT_NAME, `Intentando conexión a: ${statusUrl}`);
+  Logger.debug(this.COMPONENT_NAME, `Intentando conexión a: ${statusUrl}`);
       const response = await fetch(statusUrl, { 
         mode: 'cors',
         cache: 'no-cache',
@@ -36,7 +36,7 @@ class ApiService {
       }
             
       const data = await response.json();
-      Logger.info(this.COMPONENT_NAME, `Respuesta del servidor: ${JSON.stringify(data)}`);
+  Logger.debug(this.COMPONENT_NAME, `Respuesta del servidor: ${JSON.stringify(data)}`);
       return data && (data.status === 'connected' || data.status === 'ok' || data.status === 'online');
     } catch (error) {
       Logger.error(this.COMPONENT_NAME, `Error al verificar conexión: ${error.message}`, error);
@@ -51,7 +51,7 @@ class ApiService {
    */
   static async createRobustWebSocketConnection(url, handlers = {}) {
     try {
-      Logger.info(this.COMPONENT_NAME, '🚀 Iniciando conexión WebSocket con manejo robusto');
+  Logger.debug(this.COMPONENT_NAME, 'Iniciando conexión WebSocket con manejo robusto');
       
       // Crear instancia del WebSocketManager
       const wsManager = new WebSocketManager(this.COMPONENT_NAME);
@@ -59,6 +59,7 @@ class ApiService {
       // Intentar conectar con los handlers proporcionados
       await wsManager.connect({
         onOpen: (event) => {
+          // ÚNICA línea info de ApiService que el usuario desea mantener (mensaje de éxito de WS)
           Logger.info(this.COMPONENT_NAME, '✅ WebSocket conectado exitosamente');
           if (handlers.onOpen) {
             handlers.onOpen(event);
@@ -140,7 +141,7 @@ class ApiService {
         }
       };
       
-      Logger.info(this.COMPONENT_NAME, '🎯 WebSocket wrapper creado exitosamente');
+  Logger.debug(this.COMPONENT_NAME, 'WebSocket wrapper creado exitosamente');
       return wsWrapper;
       
     } catch (error) {
@@ -158,7 +159,7 @@ class ApiService {
           Logger.debug(this.COMPONENT_NAME, '🔌 Cierre solicitado en WebSocket fallido');
         },
         restart: () => {
-          Logger.info(this.COMPONENT_NAME, '🔄 Reinicio solicitado - creando nueva conexión');
+          Logger.debug(this.COMPONENT_NAME, 'Reinicio solicitado - creando nueva conexión');
           return this.createRobustWebSocketConnection(url, handlers);
         },
         getConnectionState: () => 'failed',
@@ -194,14 +195,15 @@ class ApiService {
           : `ws://${window.location.host}${url}`;
       }
       
-      Logger.debug(this.COMPONENT_NAME, `Creando conexión WebSocket a: ${wsUrl}`);
+  Logger.debug(this.COMPONENT_NAME, `Creando conexión WebSocket (fallback/simple) a: ${wsUrl}`);
       
       const wsInstance = createMonitoredWebSocket(wsUrl, this.COMPONENT_NAME);
       
       // Configurar manejadores con logging mejorado
       if (handlers.onOpen) {
         wsInstance.onopen = (event) => {
-          Logger.info(this.COMPONENT_NAME, `WebSocket conectado exitosamente a ${wsUrl}`);
+          // Mantener en debug para no duplicar mensaje info
+          Logger.debug(this.COMPONENT_NAME, `WebSocket conectado exitosamente a ${wsUrl}`);
           handlers.onOpen(event);
         };
       }
@@ -308,13 +310,38 @@ class ApiService {
    * @returns {Promise<Object>} - Resultados del procesamiento
    */
   static async processImage(imageInput) {
-  const endpoint = API_ROUTES.PROCESS_IMAGE;
-    return this._processImageBase(
-      imageInput, 
-      endpoint, 
-      'Procesando imagen', 
+    const endpoint = API_ROUTES.PROCESS_IMAGE;
+    Logger.debug(this.COMPONENT_NAME, 'Preparando procesamiento de imagen (processImage)');
+    const start = performance.now();
+    const result = await this._processImageBase(
+      imageInput,
+      endpoint,
+      'Procesando imagen',
       'Error al procesar imagen'
     );
+    const duration = Math.round(performance.now() - start);
+    Logger.debug(this.COMPONENT_NAME, 'Procesamiento de imagen completado', { durationMs: duration, success: result?.success !== false });
+    return result;
+  }
+
+  /**
+   * Procesa una imagen de lenguaje de señas (ASL)
+   * @param {File|Blob|string} imageInput - Archivo de imagen o imagen base64
+   * @returns {Promise<Object>} - Resultados del procesamiento ASL
+   */
+  static async processSignLanguage(imageInput) {
+    const endpoint = API_ROUTES.ASL_PREDICT_SPACE; // Usar el endpoint estandarizado con debug
+    Logger.debug(this.COMPONENT_NAME, 'Preparando procesamiento de ASL (processSignLanguage)');
+    const start = performance.now();
+    const result = await this._processImageBase(
+      imageInput,
+      endpoint,
+      'Procesando lenguaje de señas',
+      'Error al procesar lenguaje de señas'
+    );
+    const duration = Math.round(performance.now() - start);
+    Logger.debug(this.COMPONENT_NAME, 'Procesamiento de ASL completado', { durationMs: duration, success: result?.success !== false });
+    return result;
   }
 
   /**

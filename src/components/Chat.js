@@ -75,7 +75,6 @@ const Chat = ({ onImageResult }) => {
   // Referencias
   const ws = useRef(null);
   const reconnectTimeoutRef = useRef(null);
-  const initWebSocketRef = useRef(null);
   const navigate = useNavigate();
 
   // Comprobar si ya se ha aceptado la política de privacidad
@@ -83,7 +82,7 @@ const Chat = ({ onImageResult }) => {
     if (localStorage.getItem('chat_privacy_accepted') === 'true') {
       setShowPrivacyModal(false);
     }
-  }, [initWebSocketRef]);
+  }, []); // initWebSocket removed: not used inside effect, avoids no-use-before-define warning
 
   // Manejadores para el modal de privacidad
   const handleAcceptPrivacy = () => {
@@ -116,6 +115,7 @@ const Chat = ({ onImageResult }) => {
       const message = errorInput?.message || errorInput?.toString() || 'Error desconocido';
       errorText = `Error: ${message}`;
     }
+    
     addMessage({
       text: errorText,
       isUser: false,
@@ -213,7 +213,7 @@ const Chat = ({ onImageResult }) => {
    * Manejar apertura de conexión WebSocket
    */
   const handleWebSocketOpen = () => {
-    Logger.info(COMPONENT_NAME, 'WebSocket conectado con éxito');
+  Logger.debug(COMPONENT_NAME, 'WebSocket onOpen handler ejecutado');
     setIsConnected(true);
     setConnectionError(null);
   };
@@ -232,9 +232,7 @@ const Chat = ({ onImageResult }) => {
     }
 
     reconnectTimeoutRef.current = setTimeout(() => {
-      if (initWebSocketRef.current) {
-        initWebSocketRef.current();
-      }
+      initWebSocket();
     }, 5000);
   }, []);
 
@@ -259,7 +257,7 @@ const Chat = ({ onImageResult }) => {
     }
 
     try {
-      Logger.info(COMPONENT_NAME, '🚀 Inicializando WebSocket con manejo robusto...');
+  Logger.debug(COMPONENT_NAME, 'Inicializando WebSocket con manejo robusto...');
       
       ws.current = await ApiService.createRobustWebSocketConnection(WS_ROUTES.CHAT, {
         onOpen: handleWebSocketOpen,
@@ -268,13 +266,14 @@ const Chat = ({ onImageResult }) => {
         onError: handleWebSocketError
       });
       
-      Logger.info(COMPONENT_NAME, '✅ WebSocket inicializado exitosamente');
+  // ÚNICO mensaje info permitido desde Chat (requerimiento del usuario)
+  Logger.info(COMPONENT_NAME, '✅ WebSocket inicializado exitosamente');
       
     } catch (error) {
-      Logger.error(COMPONENT_NAME, '❌ Error al inicializar WebSocket robusto:', error);
+  Logger.error(COMPONENT_NAME, 'Error al inicializar WebSocket robusto:', error);
       
       // Fallback al método original si el robusto falla
-      Logger.warn(COMPONENT_NAME, '🔄 Intentando fallback a conexión WebSocket estándar...');
+  Logger.debug(COMPONENT_NAME, 'Intentando fallback a conexión WebSocket estándar...');
       try {
         ws.current = ApiService.createWebSocketConnection(WS_ROUTES.CHAT, {
           onOpen: handleWebSocketOpen,
@@ -289,20 +288,15 @@ const Chat = ({ onImageResult }) => {
     }
   }, [handleWebSocketMessage, handleWebSocketClose]);
 
-  // Mantener una referencia invocable a initWebSocket para usarla desde otros callbacks sin dependencias cíclicas
-  useEffect(() => {
-    initWebSocketRef.current = initWebSocket;
-  }, [initWebSocket]);
-
   /**
    * Inicializar componente al montar
    */
   useEffect(() => {
-    Logger.info(COMPONENT_NAME, 'Inicializando WebSocket para chat...');
+  Logger.debug(COMPONENT_NAME, 'Efecto de montaje: inicializando WebSocket para chat');
     initWebSocket();
 
     return () => {
-      Logger.info(COMPONENT_NAME, 'Limpiando recursos');
+  Logger.debug(COMPONENT_NAME, 'Desmontando Chat: limpiando recursos');
       if (ws.current) {
         ws.current.close();
         ws.current = null;
@@ -418,14 +412,14 @@ const Chat = ({ onImageResult }) => {
    * Manejar carga de imagen
    */
   const handleImageUpload = useCallback(async (file) => {
-    Logger.debug(COMPONENT_NAME, 'Evento de carga de imagen activado');
+  Logger.debug(COMPONENT_NAME, 'Evento de carga de imagen activado (handleImageUpload)');
 
     if (!file) {
       Logger.debug(COMPONENT_NAME, 'No se seleccionó ningún archivo');
       return;
     }
 
-    Logger.debug(COMPONENT_NAME, 'Archivo seleccionado', file.name);
+  Logger.debug(COMPONENT_NAME, 'Archivo seleccionado', { name: file.name, size: file.size, type: file.type });
 
     try {
       // Leer la imagen como base64
@@ -436,7 +430,8 @@ const Chat = ({ onImageResult }) => {
         reader.readAsDataURL(file);
       });
       
-      const base64Image = await base64ImagePromise;
+  const base64Image = await base64ImagePromise;
+  Logger.debug(COMPONENT_NAME, 'Imagen leída y convertida a base64', { length: base64Image.length });
 
       // Mostrar imagen en el chat como mensaje del usuario
       addMessage({
@@ -465,12 +460,16 @@ const Chat = ({ onImageResult }) => {
   // Crear mensaje en formato estandarizado (no se envía por WS en este flujo)
   // const standardMessage = createImageMessage(base64Image.split(',')[1], 'Análisis de imagen');
       
-      // Para imágenes, usamos el endpoint REST en lugar de WebSocket
-      const { success, data, error } = await ApiService.processImage(file);
+      // Para imágenes, usamos procesamiento ASL directamente
+      Logger.debug(COMPONENT_NAME, 'Iniciando envío de imagen a backend (processSignLanguage - ASL)');
+      const { success, data, error } = await ApiService.processSignLanguage(file);
+      Logger.debug(COMPONENT_NAME, 'Respuesta recibida de backend (processSignLanguage)', { success, hasData: !!data, hasError: !!error });
 
       if (success && data) {
-        // Formatear y mostrar resultado
-        const resultText = formatImageAnalysisResult(data);
+        // Formatear resultado ASL
+        const resultText = data.success 
+          ? `🔤 ASL: ${data.prediction} (${data.confidence}%)`
+          : `❌ Sin reconocimiento: ${data.message || 'No se pudo procesar'}`;
         addMessage({
           text: resultText,
           isUser: false,
@@ -483,10 +482,10 @@ const Chat = ({ onImageResult }) => {
           onImageResult(data);
         }
       } else {
-        throw new Error(error?.message || 'Error al analizar la imagen');
+        throw new Error(error?.message || 'Error al analizar lenguaje de señas');
       }
     } catch (error) {
-      Logger.error(COMPONENT_NAME, 'Error al procesar la imagen', error);
+  Logger.error(COMPONENT_NAME, 'Error al procesar la imagen', error);
       addErrorMessage(error);
     } finally {
       setIsTyping(false);

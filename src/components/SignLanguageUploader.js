@@ -69,20 +69,19 @@ const SignLanguageUploader = () => {
     setError(null);
     
     try {
-      const formData = new FormData();
-      formData.append('image', selectedFile);
+      // Importar ApiService y usar el método correcto
+      const { default: ApiService } = await import('../services/api');
+      
+      Logger.debug('SignLanguageUploader', 'Iniciando procesamiento ASL con ApiService');
+      const { success, data, error: apiError } = await ApiService.processSignLanguage(selectedFile);
 
-      const response = await fetch('/api/process-sign-language', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Error al procesar la imagen');
+      if (success && data) {
+        Logger.info('SignLanguageUploader', 'ASL procesado exitosamente', data);
+        // Aquí puedes manejar el resultado exitoso
+        // Por ejemplo, mostrar la predicción en la UI
+      } else {
+        throw new Error(apiError?.message || 'Error al procesar el lenguaje de señas');
       }
-
-      const result = await response.json();
-      Logger.info('SignLanguageUploader', 'Imagen procesada exitosamente', result);
     } catch (error) {
       setError(error.message || 'Error al procesar la imagen');
       Logger.error('SignLanguageUploader', 'Error al procesar la imagen', error);

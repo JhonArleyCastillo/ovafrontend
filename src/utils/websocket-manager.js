@@ -81,7 +81,7 @@ export class WebSocketManager {
     const env = process.env.NODE_ENV || 'development';
     this.endpoints = WS_CONFIG.ENDPOINTS[env] || WS_CONFIG.ENDPOINTS.development;
     
-    Logger.info(this.componentName, `WebSocket Manager inicializado para entorno: ${env}`);
+  Logger.debug(this.componentName, `WebSocket Manager inicializado para entorno: ${env}`);
   }
 
   /**
@@ -114,20 +114,20 @@ export class WebSocketManager {
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        Logger.info(this.componentName, `Servidor WS disponible en ${healthUrl}`);
+  Logger.debug(this.componentName, `Servidor WS disponible en ${healthUrl}`);
         return true;
       } else {
         // Intentar con /api/chat/health y luego /status como respaldo
         Logger.warn(this.componentName, `WS health respondió ${response.status}. Probando ${apiHealthUrl}`);
         const resApi = await fetch(apiHealthUrl, { method: 'GET', cache: 'no-cache' });
         if (resApi.ok) {
-          Logger.info(this.componentName, `Servidor WS disponible en ${apiHealthUrl}`);
+          Logger.debug(this.componentName, `Servidor WS disponible en ${apiHealthUrl}`);
           return true;
         }
         Logger.warn(this.componentName, `API WS health respondió ${resApi.status}. Probando ${statusUrl}`);
         const res2 = await fetch(statusUrl, { method: 'GET', cache: 'no-cache' });
         if (res2.ok) {
-          Logger.info(this.componentName, `Servidor HTTP disponible en ${statusUrl}`);
+          Logger.debug(this.componentName, `Servidor HTTP disponible en ${statusUrl}`);
           return true;
         }
         return false;
@@ -173,7 +173,7 @@ export class WebSocketManager {
    */
   async attemptConnection(isRetry = false) {
     if (!this.shouldReconnect) {
-      Logger.info(this.componentName, 'Conexión cancelada por usuario');
+  Logger.debug(this.componentName, 'Conexión cancelada por usuario');
       return null;
     }
 
@@ -194,10 +194,10 @@ export class WebSocketManager {
     
     if (isRetry) {
       this.connectionState = WS_CONFIG.CONNECTION_STATES.RECONNECTING;
-      Logger.info(this.componentName, `Reintentando conexión (${this.retryCount}/${WS_CONFIG.MAX_RETRY_ATTEMPTS}) a ${url}`);
+  Logger.debug(this.componentName, `Reintentando conexión (${this.retryCount}/${WS_CONFIG.MAX_RETRY_ATTEMPTS}) a ${url}`);
     } else {
       this.connectionState = WS_CONFIG.CONNECTION_STATES.CONNECTING;
-      Logger.info(this.componentName, `Iniciando conexión a ${url}`);
+  Logger.debug(this.componentName, `Iniciando conexión a ${url}`);
     }
 
     // Verificar disponibilidad del servidor primero
@@ -271,7 +271,8 @@ export class WebSocketManager {
    * Maneja la apertura exitosa de conexión
    */
   onConnectionOpen(event) {
-    Logger.info(this.componentName, `✅ WebSocket conectado exitosamente a ${this.currentUrl}`);
+  // Reducido a debug para que solo queden los 2 mensajes info solicitados (Chat y ApiService)
+  Logger.debug(this.componentName, `✅ WebSocket conectado exitosamente a ${this.currentUrl}`);
     
     // Limpiar timers y resetear contadores
     this.clearTimers();
@@ -354,7 +355,7 @@ export class WebSocketManager {
     this.retryCount++;
     const delay = this.calculateRetryDelay(this.retryCount);
     
-    Logger.info(this.componentName, `🔄 Programando reintento ${this.retryCount}/${WS_CONFIG.MAX_RETRY_ATTEMPTS} en ${delay}ms`);
+  Logger.debug(this.componentName, `Programando reintento ${this.retryCount}/${WS_CONFIG.MAX_RETRY_ATTEMPTS} en ${delay}ms`);
     
     this.retryTimer = setTimeout(() => {
       this.attemptConnection(true);
@@ -409,7 +410,7 @@ export class WebSocketManager {
    * @param {string} reason - Razón del cierre
    */
   disconnect(code = WS_CONFIG.CLOSE_CODES.NORMAL, reason = 'Desconexión solicitada') {
-    Logger.info(this.componentName, `🔌 Desconectando WebSocket: ${reason}`);
+  Logger.debug(this.componentName, `Desconectando WebSocket: ${reason}`);
     
     this.shouldReconnect = false;
     this.cleanup();
@@ -473,7 +474,7 @@ export class WebSocketManager {
    * Reinicia la conexión
    */
   restart() {
-    Logger.info(this.componentName, '🔄 Reiniciando conexión WebSocket');
+  Logger.debug(this.componentName, 'Reiniciando conexión WebSocket');
     this.disconnect();
     setTimeout(() => {
       this.retryCount = 0;
