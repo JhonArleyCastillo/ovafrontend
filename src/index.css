@@ -87,6 +87,15 @@
   --sidebar-active-bg: rgba(31, 111, 235, 0.15);
   --hamburger-size: 20px;
   --transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  /* Modal Términos y Condiciones (tema claro) */
+  --terms-modal-bg: #ffffff;
+  --terms-modal-header-bg: #1f6feb;
+  --terms-modal-header-text: #ffffff;
+  --terms-modal-border: #1f6feb;
+  --terms-modal-shadow: rgba(0,0,0,0.25);
+  --terms-badge-bg: #e9ecef;
+  --terms-badge-text: #212529;
 }
 
 /* Tema oscuro (noche) */
@@ -107,6 +116,15 @@
   --accent-orange: #FFC266;
   --hero-bg-start: #0f1320;
   --hero-bg-end: #1b1f2e;
+
+  /* Modal Términos y Condiciones (tema oscuro) */
+  --terms-modal-bg: #161b22;
+  --terms-modal-header-bg: #1f6feb;
+  --terms-modal-header-text: #ffffff;
+  --terms-modal-border: #30363d;
+  --terms-modal-shadow: rgba(0,0,0,0.6);
+  --terms-badge-bg: #21262d;
+  --terms-badge-text: #f0f6fc;
 }
 
 /* Tema claro (día) - explícito */
@@ -127,6 +145,86 @@
   --accent-orange: #FFB300;
   --hero-bg-start: #f8fafc;
   --hero-bg-end: #e0e7ff;
+
+  /* Explicit repetition for clarity (tema claro) */
+  --terms-modal-bg: #ffffff;
+  --terms-modal-header-bg: #1f6feb;
+  --terms-modal-header-text: #ffffff;
+  --terms-modal-border: #1f6feb;
+  --terms-modal-shadow: rgba(0,0,0,0.25);
+  --terms-badge-bg: #e9ecef;
+  --terms-badge-text: #212529;
+}
+
+/* ================= MODAL TÉRMINOS & PRIVACIDAD ================= */
+.terms-modal .modal-content {
+  background: var(--terms-modal-bg) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--terms-modal-border) !important;
+  box-shadow: 0 10px 30px var(--terms-modal-shadow) !important;
+  transition: background 0.3s, color 0.3s;
+}
+
+.terms-modal .modal-header {
+  background: var(--terms-modal-header-bg) !important;
+  color: var(--terms-modal-header-text) !important;
+  border-bottom: 1px solid var(--terms-modal-border) !important;
+}
+
+.terms-modal .modal-header .modal-title {
+  color: var(--terms-modal-header-text) !important;
+  font-weight: 600;
+}
+
+.terms-modal .modal-body h5 {
+  color: var(--sidebar-active) !important;
+  font-weight: 600;
+  margin-top: 1rem;
+}
+
+.terms-modal .alert-info {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.terms-modal .modal-footer {
+  background: var(--bg-secondary) !important;
+  border-top: 1px solid var(--border-color) !important;
+}
+
+.terms-modal .badge-legal {
+  display: inline-block;
+  background: var(--terms-badge-bg);
+  color: var(--terms-badge-text);
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0 0.25rem 0.25rem 0;
+  border: 1px solid var(--border-color);
+}
+
+.terms-modal ul {
+  padding-left: 1.1rem;
+}
+
+.terms-modal ul li {
+  margin-bottom: 0.35rem;
+}
+
+.terms-modal .btn-primary {
+  font-weight: 600;
+}
+
+.terms-modal .btn-secondary {
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.terms-modal .btn-secondary:hover {
+  background: var(--bg-secondary) !important;
 }
 
 /* Aplicar tema al body y elementos principales */

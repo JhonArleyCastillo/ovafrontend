@@ -466,8 +466,8 @@ node scripts/health-check.js --env production
    - ✅ Manos visibles
    - ✅ Resolución adecuada
    - ✅ Contraste suficiente
-4. 🤖 Conexión a modelo personalizado: JhonArleyCastilloV/ASL_model_1
-5. 🔗 Llamada a HF Space: jhonarleycastillov-asl-image.hf.space
+4. 🤖 Conexión a HF Space autenticado (HF_TOKEN)
+5. 🔗 Space: jhonarleycastillov-asl-image.hf.space
 6. 🧠 Predicción con modelo entrenado específicamente para ASL
 7. 📊 Respuesta con traducción:
    {

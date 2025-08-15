@@ -1,3 +1,21 @@
+/*
+api.js - Servicio principal para comunicación con el backend
+
+Este archivo es el centro de todas las comunicaciones entre el frontend React
+y el backend FastAPI. Maneja:
+
+- Llamadas HTTP a endpoints REST (imágenes ASL, contacto, etc.)
+- Conexiones WebSocket para chat en tiempo real
+- Verificación de estado del servidor
+- Procesamiento de archivos multimedia
+
+Como desarrollador fullstack, aquí es donde:
+- Cambias URLs de endpoints si moves cosas en el backend
+- Agregas nuevos métodos para endpoints nuevos
+- Debuggeas problemas de conectividad
+- Configuras timeouts y reintentos
+*/
+
 import Logger, { safeApiCall, createMonitoredWebSocket } from '../utils/debug-utils';
 import { WebSocketManager } from '../utils/websocket-manager';
 import { API_BASE_URL, API_ROUTES, WS_ROUTES } from '../config/api.routes';
@@ -6,15 +24,22 @@ import { blobToBase64 } from '../utils/media-utils';
 import { createImageMessage, createTextMessage, createAudioMessage } from '../utils/message-utils';
 
 /**
- * Clase para manejar las operaciones de la API
+ * Servicio principal para toda la comunicación con el backend.
+ * 
+ * Esta clase centraliza todas las llamadas API para mantener
+ * consistencia y facilitar el debugging de conectividad.
  */
 class ApiService {
   static COMPONENT_NAME = COMPONENT_NAMES.API_SERVICE;
   static WS_ROUTES = WS_ROUTES;
 
   /**
-   * Verifica el estado de la conexión con el servidor
-   * @returns {Promise<boolean>} - true si la conexión es exitosa
+   * Verifica si el backend está vivo y respondiendo.
+   * 
+   * Útil para mostrar indicadores de conexión en el UI
+   * y detectar cuando el servidor está caído.
+   * 
+   * @returns {Promise<boolean>} - true si el servidor responde correctamente
    */
   static async checkServerStatus() {
     const statusUrl = `${API_BASE_URL}${API_ROUTES.STATUS}`;
@@ -43,23 +68,30 @@ class ApiService {
       return false;
     }
   }
+
   /**
-   * Crea una conexión WebSocket con manejo robusto de estado y retry automático
-   * @param {string} url - Ruta específica para la conexión WebSocket (no usado, se gestiona internamente)
-   * @param {Object} handlers - Manejadores de eventos del WebSocket
-   * @returns {Promise<Object>} - Wrapper del WebSocketManager con API compatible
+   * Crea una conexión WebSocket robusta para el chat en tiempo real.
+   * 
+   * Esta función maneja automáticamente:
+   * - Reconexión automática si se pierde la conexión
+   * - Buffereo de mensajes durante desconexiones
+   * - Logging detallado para debugging
+   * 
+   * @param {string} url - Ruta WebSocket (manejada internamente)
+   * @param {Object} handlers - Callbacks para eventos del WebSocket
+   * @returns {Promise<Object>} - Manager del WebSocket con API estándar
    */
   static async createRobustWebSocketConnection(url, handlers = {}) {
     try {
   Logger.debug(this.COMPONENT_NAME, 'Iniciando conexión WebSocket con manejo robusto');
       
-      // Crear instancia del WebSocketManager
+      // Creamos instancia del WebSocketManager (maneja reconexión automática)
       const wsManager = new WebSocketManager(this.COMPONENT_NAME);
       
-      // Intentar conectar con los handlers proporcionados
+      // Conectamos con los handlers del chat
       await wsManager.connect({
         onOpen: (event) => {
-          // ÚNICA línea info de ApiService que el usuario desea mantener (mensaje de éxito de WS)
+          // ✅ Esta es la línea de éxito que queremos mantener visible
           Logger.info(this.COMPONENT_NAME, '✅ WebSocket conectado exitosamente');
           if (handlers.onOpen) {
             handlers.onOpen(event);
@@ -86,7 +118,7 @@ class ApiService {
         },
         
         onError: (error) => {
-          // Solo loggear el error si no es durante el proceso de conexión inicial
+          // Solo loggeamos errores de conexiones activas, no de reconexión
           if (wsManager.getConnectionState() === 'connected') {
             Logger.error(this.COMPONENT_NAME, '❌ Error en WebSocket activo:', error);
           } else {
@@ -325,29 +357,45 @@ class ApiService {
   }
 
   /**
-   * Procesa una imagen de lenguaje de señas (ASL)
-   * @param {File|Blob|string} imageInput - Archivo de imagen o imagen base64
-   * @returns {Promise<Object>} - Resultados del procesamiento ASL
+  /**
+   * Procesa una imagen de lenguaje de señas ASL.
+   * 
+   * Esta es LA FUNCIÓN MÁS IMPORTANTE para el reconocimiento ASL.
+   * Toma una imagen (archivo o base64) y la envía al backend para
+   * que el modelo de IA determine qué signo es.
+   * 
+   * @param {File|Blob|string} imageInput - Imagen a procesar (archivo o base64)
+   * @returns {Promise<Object>} - Resultado con predicción, confianza y alternativas
    */
   static async processSignLanguage(imageInput) {
-    const endpoint = API_ROUTES.ASL_PREDICT_SPACE; // Usar el endpoint estandarizado con debug
+    const endpoint = API_ROUTES.ASL_PREDICT_SPACE; // Endpoint estandarizado con debug
     Logger.debug(this.COMPONENT_NAME, 'Preparando procesamiento de ASL (processSignLanguage)');
     const start = performance.now();
+    
     const result = await this._processImageBase(
       imageInput,
       endpoint,
       'Procesando lenguaje de señas',
       'Error al procesar lenguaje de señas'
     );
+    
     const duration = Math.round(performance.now() - start);
-    Logger.debug(this.COMPONENT_NAME, 'Procesamiento de ASL completado', { durationMs: duration, success: result?.success !== false });
+    Logger.debug(this.COMPONENT_NAME, 'Procesamiento de ASL completado', { 
+      durationMs: duration, 
+      success: result?.success !== false,
+      prediction: result?.prediction || 'N/A'
+    });
     return result;
   }
 
   /**
-   * Envía un audio para procesamiento
-   * @param {Blob} audioBlob - Blob de audio
-   * @returns {Promise<Object>} - Resultados del procesamiento
+   * Envía un audio para procesamiento de voz.
+   * 
+   * Toma un blob de audio grabado desde el micrófono
+   * y lo envía al backend para transcripción.
+   * 
+   * @param {Blob} audioBlob - Audio grabado desde el micrófono
+   * @returns {Promise<Object>} - Texto transcrito y respuesta del bot
    */
   static async processAudio(audioBlob) {
     const endpoint = API_ROUTES.CHAT;
@@ -355,7 +403,7 @@ class ApiService {
     
     return await safeApiCall(
       async () => {
-        // Usamos FormData para envío HTTP
+        // Creamos FormData porque el audio va como archivo
         const formData = new FormData();
         formData.append('audio', audioBlob, 'audio.webm');
 
@@ -377,10 +425,14 @@ class ApiService {
   }
   
   /**
-   * Método base para enviar datos por WebSocket
+   * Método interno para enviar datos por WebSocket de forma segura.
+   * 
+   * Verifica que la conexión esté activa antes de enviar
+   * para evitar errores de conexión cerrada.
+   * 
    * @param {WebSocket} ws - Conexión WebSocket activa
-   * @param {Object|string} data - Datos a enviar
-   * @param {string} errorMessage - Mensaje de error
+   * @param {Object|string} data - Datos a enviar (se serializan a JSON)
+   * @param {string} errorMessage - Mensaje personalizado si falla
    * @returns {boolean} - true si se envió correctamente
    * @private
    */
