@@ -26,13 +26,16 @@ const ENV_CONFIG = {
   },
   
   production: {
-  API_BASE_URL: 'https://api.ovaonline.tech',
-  WS_BASE_URL: 'wss://api.ovaonline.tech',
-  WS_FALLBACK_URL: 'wss://www.api.ovaonline.tech',
+    API_BASE_URL: 'https://www.api.ovaonline.tech',
+    WS_BASE_URL: 'wss://www.api.ovaonline.tech',
+    WS_FALLBACK_URL: 'wss://www.api.ovaonline.tech',
     DEBUG_ENABLED: false,
     RETRY_ATTEMPTS: 5,
     HEARTBEAT_INTERVAL: 60000,
-    CONNECTION_TIMEOUT: 20000
+    CONNECTION_TIMEOUT: 20000,
+    // Seguridad: Solo HTTPS en producción
+    ENFORCE_HTTPS: true,
+    ALLOWED_PROTOCOLS: ['https:', 'wss:']
   }
 };
 
@@ -89,6 +92,24 @@ const validateConfig = () => {
     console.error(`✖ Configuración incompleta. Faltan: ${missing.join(', ')}`);
     throw new Error(`Configuración incompleta: ${missing.join(', ')}`);
   }
+
+  // Seguridad: Validar HTTPS en producción
+  if (config.ENFORCE_HTTPS && currentEnv === 'production') {
+    const urls = [config.API_BASE_URL, config.WS_BASE_URL, config.WS_FALLBACK_URL];
+    const insecureUrls = urls.filter(url => {
+      const protocol = new URL(url).protocol;
+      return !config.ALLOWED_PROTOCOLS.includes(protocol);
+    });
+    
+    if (insecureUrls.length > 0) {
+      // eslint-disable-next-line no-console
+      console.error(`🚨 SEGURIDAD: URLs inseguras detectadas en producción: ${insecureUrls.join(', ')}`);
+      throw new Error(`URLs inseguras no permitidas en producción: ${insecureUrls.join(', ')}`);
+    }
+    
+    // eslint-disable-next-line no-console
+    console.info('🔒 Validación de seguridad HTTPS: PASSED');
+  }
   
   // eslint-disable-next-line no-console
   console.info(`✅ Configuración cargada para entorno: ${currentEnv}`);
@@ -138,3 +159,41 @@ export const isProduction = () => currentEnv === 'production';
 
 // Función para verificar si estamos en staging
 export const isStaging = () => currentEnv === 'staging';
+
+// Función para forzar HTTPS en producción
+export const enforceHTTPS = () => {
+  if (isProduction() && typeof window !== 'undefined') {
+    if (window.location.protocol !== 'https:') {
+      // eslint-disable-next-line no-console
+      console.warn('🔒 Redirigiendo a HTTPS por seguridad...');
+      window.location.href = window.location.href.replace('http:', 'https:');
+      return false; // Indica que se está redirigiendo
+    }
+  }
+  return true; // OK para continuar
+};
+
+// Función para validar URL antes de hacer requests
+export const validateSecureUrl = (url) => {
+  if (isProduction()) {
+    const urlObj = new URL(url);
+    if (urlObj.protocol !== 'https:' && urlObj.protocol !== 'wss:') {
+      throw new Error(`🚨 URL insegura rechazada en producción: ${url}`);
+    }
+  }
+  return true;
+};
+
+// Función para obtener URL de API validada
+export const getSecureApiUrl = (endpoint = '') => {
+  const baseUrl = config.API_BASE_URL;
+  validateSecureUrl(baseUrl);
+  return `${baseUrl}${endpoint}`;
+};
+
+// Función para obtener URL de WebSocket validada
+export const getSecureWebSocketUrl = (path = '/api/chat') => {
+  const wsUrl = `${config.WS_BASE_URL}${path}`;
+  validateSecureUrl(wsUrl);
+  return wsUrl;
+};

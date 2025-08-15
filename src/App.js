@@ -466,6 +466,12 @@ function App() {
     <Router>
       <Routes>
         {/* Admin routes */}
+        {/* Ruta principal /admin: si está autenticado muestra el dashboard; si no, PrivateRoute redirige a /admin/login */}
+        <Route path="/admin" element={
+          <PrivateRoute>
+            <AdminDashboard />
+          </PrivateRoute>
+        } />
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={
           <PrivateRoute>

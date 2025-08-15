@@ -80,8 +80,8 @@ function AdminLogin() {
       
       await AuthService.login(email, password, options);
       
-      // Redireccionar al panel de administración
-      navigate('/admin/dashboard');
+  // Redireccionar al panel de administración
+  navigate('/admin');
     } catch (error) {
       if (error.type === 'network' || 
           error.message.includes('Failed to fetch') || 

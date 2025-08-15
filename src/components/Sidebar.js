@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Link, useLocation } from 'react-router-dom';
 import useDayNightTheme from '../hooks/useDayNightTheme';
+import Logger from '../utils/debug-utils';
 
 /**
  * COMPONENTE SIDEBAR PARA NAVEGACIÓN PRINCIPAL
@@ -257,7 +258,7 @@ const SidebarLinks = ({ onLinkClick, location, isMobile }) => {
 
   return (
     <nav className="sidebar-nav" role="navigation" aria-label="Navegación principal">
-      <ul className="nav-list" role="list">
+      <ul className="nav-list">
         {menuItems.map((item) => (
           <li key={item.path} className="nav-item" role="none">
             {/*
@@ -377,7 +378,7 @@ const Sidebar = () => {
   useEffect(() => {
     setIsOpen(false);
     // Logging para debugging de navegación
-    console.log('📍 Navegación detectada:', location.pathname);
+    Logger.debug('Sidebar', '📍 Navegación detectada:', location.pathname);
   }, [location.pathname]);
 
   // ═══════════════════════════════════════════════════════════════════════════════════
@@ -392,7 +393,7 @@ const Sidebar = () => {
    */
   const toggleMenu = () => {
     setIsOpen(!isOpen);
-    console.log('🍔 Menú hamburger toggle:', !isOpen);
+    Logger.debug('Sidebar', '🍔 Menú hamburger toggle:', !isOpen);
   };
 
   /**
@@ -403,7 +404,7 @@ const Sidebar = () => {
    */
   const handleLinkClick = () => {
     setIsOpen(false);
-    console.log('🔗 Link clickeado, cerrando menú');
+    Logger.debug('Sidebar', '🔗 Link clickeado, cerrando menú');
   };
 
   // ═══════════════════════════════════════════════════════════════════════════════════
@@ -428,11 +429,11 @@ const Sidebar = () => {
     if (isOpen) {
       // Activar scroll lock cuando menú se abre
       document.body.classList.add('menu-open');
-      console.log('🔒 Scroll bloqueado - menú abierto');
+      Logger.debug('Sidebar', '🔒 Scroll bloqueado - menú abierto');
     } else {
       // Liberar scroll cuando menú se cierra
       document.body.classList.remove('menu-open');
-      console.log('🔓 Scroll liberado - menú cerrado');
+      Logger.debug('Sidebar', '🔓 Scroll liberado - menú cerrado');
     }
 
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -448,7 +449,7 @@ const Sidebar = () => {
      */
     return () => {
       document.body.classList.remove('menu-open');
-      console.log('🧹 Cleanup: clase menu-open removida del body');
+      Logger.debug('Sidebar', '🧹 Cleanup: clase menu-open removida del body');
     };
   }, [isOpen]);
 
